@@ -43,7 +43,7 @@ assert 'MetricsMath.parseCount' in java
 assert 'Intent.createChooser' in java
 assert 'store.saveReminder' in java
 assert 'ContentSchedule.ideaFor' in java
-assert 'Không đăng tự động' in java
+assert 'Không tự đăng bài' in java and 'không tự thu thập dữ liệu' in java.lower()
 assert 'MCP độc lập' in java and 'mcpClient.pair' in java
 assert 'activateTab(selectedTab, false)' in java
 assert 'tabPages[i].setVisibility' in java
