@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'source-archive/**'
+      - 'app/**'
+      - '*.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
       - '.github/workflows/bootstrap-android.yml'
   workflow_dispatch:
 
@@ -67,7 +71,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm -r source-archive
-          git add .gitignore .codex README.md SOURCE_MANIFEST.sha256 app build.gradle settings.gradle gradle.properties scripts .github/workflows/android-ci.yml
+          git add .gitignore .codex README.md SOURCE_MANIFEST.sha256 app build.gradle settings.gradle gradle.properties scripts
           git commit -m "Publish verified SangIT Android Agent v0.2 source"
           git push origin HEAD:main
 
