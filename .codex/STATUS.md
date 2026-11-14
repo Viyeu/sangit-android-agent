@@ -40,3 +40,12 @@ CURRENT STATE: **DEBUG APK BUILT AND VERIFIED / DEVICE E2E PENDING / PRODUCTION 
 - Confirmed BIND_NOTIFICATION_LISTENER_SERVICE in v0.3 manifest. Google Play Protect guidance explicitly identifies NOTIFICATION_LISTENER as a sideloading high-risk permission.
 - Built separate v0.3.1 minimal-permission candidate: remove listener registration and notification-access UI, preserve manual Facebook/Messenger and standalone MCP pairing; keep same applicationId and migrate no user data.
 - Offline source test 49 Java assertions + Java parser + standalone MCP tests PASS locally; CI APK and device test pending at commit time. Do not disable Play Protect. No SangIT Core/VPS/prod changes.
+
+## 2026-11-14 — v0.3.1 Play Protect minimal-permission debug APK VERIFIED
+- User observed physical device blocking the v0.3 debug APK with Google Play Protect sensitive-data warning. Google developer guidance ties this specific Internet sideload warning to NOTIFICATION_LISTENER and other high-risk permissions.
+- Removed NotificationListenerService registration from manifest and access-permission UI in v0.3.1; manual Facebook/Messenger shortcuts and independent MCP remain; old v0.3 source is retained in Git history.
+- GitHub Actions CI: https://github.com/Viyeu/sangit-android-agent/actions/runs/43614618249, SUCCESS, commit 7f0980bca28d3f2d06a387f207b2ea0f7bf45b84.
+- CI compiled Android SDK 35/JDK 17/Gradle 8.9, offline Java 49/49, static and syntax PASS, `aapt dump xmltree` verified no NotificationListenerService/BIND_NOTIFICATION_LISTENER_SERVICE, `apksigner verify` PASS.
+- Extracted debug APK 35,716 bytes, SHA-256 d6c42e9e44c3db209177bf777baa5d3543012d99384eb0dbddadd0e68d334e55, verified artifact ZIP CRC and APK checksum independently.
+- Android physical installation and Play Protect outcome: NOT TESTED. Cannot claim Google Play Protect accepts it until device verifies. If blocked again, collect exact new warning and examine alternate causes or Google Play Protect appeal. Do not bypass Play Protect.
+- Standalone MCP server HTTPS/OAuth LIVE still BLOCKED; SangIT Core, VPS/Panel and production untouched during this fix.
