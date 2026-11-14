@@ -71,3 +71,13 @@ STATE: **UI SOURCE + DEBUG APK BUILT / STATIC + CI PASS / PHYSICAL ANDROID E2E P
 - Identified root cause of old day shown after midnight: dated planner and checklist were built in render() once; onResume() updated metrics only.
 - UI-only patch: rebuild dated planner/checklist after date change on resume or entering Lịch; preserve draft editors and in-memory MCP session. Show three planner days by default, seven on request. Shorten explanatory text and clarify that MCP URL must be supplied by the standalone server.
 - No changes to network/auth, Android permissions, stored data keys, Core or VPS. Debug APK build and physical-device interactive E2E must be separately verified.
+
+## 2026-11-15 — v0.3.3 Android UI verified CI
+- GitHub Actions run https://github.com/Viyeu/sangit-android-agent/actions/runs/43619533804: SUCCESS at source commit fc8273ae7b37f255d46623a0232c9c6bd5f28d1e.
+- After updating a wording-sensitive static assertion in `scripts/verify-static.py`, 49/49 Java assertions, 10/10 syntax parser and static privacy guards PASS.
+- Gradle assembleDebug, compiled AndroidManifest no notification listener, apksigner verify, upload artifact: PASS.
+- Independently downloaded CI artifact and verified ZIP CRC + APK ZIP integrity, APK SHA-256 f32bbbd9a907238179b61cae2ce6401c59700abfefea417fc2d61d6710f9faa5, size 37,792 bytes; `vn.sangit.androidagent`, v0.3.3 / code 6.
+- Calendar date changes detected on resume and Lịch tab navigation without rerendering editor or pairing state. Three-day compact view expandable to seven days; placeholders no longer advertise a fake MCP hostname.
+- Physical Android 16 UX interaction/regression test: PENDING device confirmation. Standalone MCP HTTPS/OAuth LIVE: BLOCKED, unaffected.
+- No Core/WordPress/VPS/Panel/Caddy/production modification.
+STATE: **UI v0.3.3 DEBUG APK BUILD VERIFIED / DEVICE INTERACTION E2E PENDING**.
