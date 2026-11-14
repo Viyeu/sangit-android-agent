@@ -65,3 +65,9 @@ CURRENT STATE: **DEBUG APK BUILT AND VERIFIED / DEVICE E2E PENDING / PRODUCTION 
 - Real Android 16 responsive, gesture, focus/keyboard, draft retention, upgrade signature and UI E2E: NOT RUN; user confirmation required. Production signing not done.
 - No SangIT Core, VPS/Caddy, standalone MCP server or production changes.
 STATE: **UI SOURCE + DEBUG APK BUILT / STATIC + CI PASS / PHYSICAL ANDROID E2E PENDING**.
+
+## 2026-11-15 — Android screenshots reviewed, UI v0.3.3
+- User screenshots confirm the four tabs render, selected tab states are visible and no horizontal overflow appears. Screenshots alone do not verify button/tap E2E.
+- Identified root cause of old day shown after midnight: dated planner and checklist were built in render() once; onResume() updated metrics only.
+- UI-only patch: rebuild dated planner/checklist after date change on resume or entering Lịch; preserve draft editors and in-memory MCP session. Show three planner days by default, seven on request. Shorten explanatory text and clarify that MCP URL must be supplied by the standalone server.
+- No changes to network/auth, Android permissions, stored data keys, Core or VPS. Debug APK build and physical-device interactive E2E must be separately verified.

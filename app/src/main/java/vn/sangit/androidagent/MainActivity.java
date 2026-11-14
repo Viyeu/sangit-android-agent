@@ -60,6 +60,12 @@ public final class MainActivity extends Activity {
     private int selectedTab = 0;
     private TextView metricsSummary;
     private TextView reminderSummary;
+    private LinearLayout planIdeas;
+    private LinearLayout dayChecklist;
+    private TextView dayChecklistDate;
+    private Button planExpandButton;
+    private String displayedDay;
+    private boolean showAllPlanDays;
     private EditText followerInput;
     private EditText viewInput;
     private EditText interactionInput;
@@ -84,6 +90,7 @@ public final class MainActivity extends Activity {
         store = new LocalStore(this);
         if (savedInstanceState != null) {
             selectedTab = Math.max(0, Math.min(3, savedInstanceState.getInt("selected_tab", 0)));
+            showAllPlanDays = savedInstanceState.getBoolean("show_all_plan_days", false);
             restoredPost = savedInstanceState.getString("draft_editor");
             restoredReply = savedInstanceState.getString("reply_editor");
             restoredTemplate = savedInstanceState.getInt("template", 0);
@@ -105,6 +112,7 @@ public final class MainActivity extends Activity {
         if (replyEditor != null) outState.putString("reply_editor", replyEditor.getText().toString());
         if (selectedImage != null) outState.putString("image_uri", selectedImage.toString());
         outState.putInt("selected_tab", selectedTab);
+        outState.putBoolean("show_all_plan_days", showAllPlanDays);
         outState.putInt("template", restoredTemplate);
         if (chosenReminder != null) outState.putLong("reminder_choice", chosenReminder.toInstant().toEpochMilli());
         if (followerInput != null) outState.putString("metrics_followers_input", followerInput.getText().toString());
@@ -116,6 +124,7 @@ public final class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         if (metricsSummary != null) updateMetricsSummary();
+        refreshDailyContent();
     }
 
     private void render() {
@@ -182,15 +191,14 @@ public final class MainActivity extends Activity {
         root.addView(navigation, new LinearLayout.LayoutParams(-1, -2));
 
         LinearLayout statusCard = card(homePage, "Riêng tư và chủ động");
-        statusCard.addView(text("Không đăng tự động, không đọc nội dung tin nhắn. Chỉ gửi trạng thái ứng dụng khi bạn chủ động ghép cặp và xác nhận.", 13, MUTED, false));
+        statusCard.addView(text("Không tự đăng bài hoặc đọc tin nhắn. Chỉ gửi trạng thái khi bạn chủ động xác nhận.", 13, MUTED, false));
         statusCard.addView(space(9));
         Button profileBtn = button("Mở hồ sơ Facebook", false);
         profileBtn.setOnClickListener(v -> openUrl(PROFILE));
         statusCard.addView(profileBtn);
 
         LinearLayout dashboard = card(homePage, "Thống kê tự nhập");
-        dashboard.addView(text("Lấy số liệu tại Bảng điều khiển chuyên nghiệp Facebook rồi nhập thủ công. "
-            + "Agent không có API đọc thống kê cá nhân.", 12, MUTED, false));
+        dashboard.addView(text("Nhập ba chỉ số từ Facebook. Ứng dụng không tự thu thập dữ liệu.", 13, MUTED, false));
         metricsSummary = text("Chưa nhập số liệu", 14, INK, true);
         dashboard.addView(metricsSummary);
         updateMetricsSummary();
@@ -306,13 +314,16 @@ public final class MainActivity extends Activity {
         reply.addView(text("Không dán thông tin riêng tư của khách hàng vào phản hồi công khai.", 12, MUTED, false));
 
         LinearLayout planner = card(schedulePage, "Lịch nội dung 7 ngày");
-        planner.addView(text("Gợi ý 7 ngày · 1 bài/ngày, 2 Story/ngày chỉ là mục tiêu thử nghiệm. "
-            + "Nhắc qua ứng dụng Lịch do bạn tự xác nhận; không tự đăng Facebook.", 12, MUTED, false));
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-        for (int i = 0; i < 7; i++) {
-            LocalDate day = today.plusDays(i);
-            planner.addView(text(day + " · " + ContentSchedule.ideaFor(day), 12, INK, false));
-        }
+        planner.addView(text("Gợi ý bài và Reel; bạn tự duyệt và đăng.", 13, MUTED, false));
+        planIdeas = new LinearLayout(this);
+        planIdeas.setOrientation(LinearLayout.VERTICAL);
+        planner.addView(planIdeas);
+        planExpandButton = button("Xem đủ 7 ngày", false);
+        planExpandButton.setOnClickListener(v -> {
+            showAllPlanDays = !showAllPlanDays;
+            showPlanDays(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        });
+        planner.addView(planExpandButton);
         planner.addView(space(8));
         long savedWhen = store.reminderMillis();
         chosenReminder = restoredReminderMillis > 0
@@ -336,24 +347,23 @@ public final class MainActivity extends Activity {
         planner.addView(text("Lưu trong Agent không tự tạo chuông báo. Bạn phải bấm Lưu/Xác nhận trong ứng dụng Lịch.", 12, MUTED, false));
 
         LinearLayout schedule = card(schedulePage, "Việc hôm nay");
-        String date = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).toString();
-        schedule.addView(text("Ngày " + date + " · Thử nghiệm, không tự đăng bài", 12, MUTED, false));
-        schedule.addView(space(6));
-        addTask(schedule, date, "morning", "07:00 · Soạn bài / đăng Story");
-        addTask(schedule, date, "noon", "12:00 · Xem thông báo / trả lời thủ công");
-        addTask(schedule, date, "evening", "19:00 · Duyệt và đăng bài");
-        addTask(schedule, date, "night", "21:00 · Kiểm tra kết quả");
+        dayChecklistDate = text("", 13, MUTED, false);
+        schedule.addView(dayChecklistDate);
+        dayChecklist = new LinearLayout(this);
+        dayChecklist.setOrientation(LinearLayout.VERTICAL);
+        schedule.addView(dayChecklist);
+        refreshDailyContent();
 
         LinearLayout mcpPanel = card(connectPage, "Kết nối ChatGPT · MCP độc lập");
-        mcpPanel.addView(text("Máy chủ MCP cần HTTPS và mã ghép cặp hợp lệ. Chưa có máy chủ thì chưa thể kết nối.", 13, MUTED, false));
+        mcpPanel.addView(text("Nhập URL HTTPS và mã ghép cặp khi máy chủ MCP riêng đã hoạt động.", 13, MUTED, false));
         EditText endpoint = editor("", 1);
         endpoint.setSingleLine(true);
-        endpoint.setHint("https://mcp-android.example.com");
+        endpoint.setHint("Địa chỉ HTTPS máy chủ MCP");
         endpoint.setContentDescription("Địa chỉ máy chủ MCP HTTPS độc lập");
         mcpPanel.addView(endpoint);
         EditText pairingCode = editor("", 1);
         pairingCode.setSingleLine(true);
-        pairingCode.setHint("Nhập mã ghép cặp do ChatGPT cấp");
+        pairingCode.setHint("Mã ghép cặp dùng một lần");
         pairingCode.setContentDescription("Mã ghép cặp một lần");
         mcpPanel.addView(pairingCode);
         TextView pairingState = text("Chưa kết nối", 14, PRIMARY, true);
@@ -407,7 +417,39 @@ public final class MainActivity extends Activity {
                 active ? SOFT : Color.TRANSPARENT));
             tabLabels[i].setSelected(active);
         }
+        if (index == 2) refreshDailyContent();
         if (scrollTop && contentScroll != null) contentScroll.post(() -> contentScroll.scrollTo(0, 0));
+    }
+
+    /** Refresh dated lists only; editors and the in-memory MCP pairing remain mounted. */
+    private void refreshDailyContent() {
+        if (planIdeas == null || dayChecklist == null || dayChecklistDate == null) return;
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        String date = today.toString();
+        if (date.equals(displayedDay)) return;
+        displayedDay = date;
+        showPlanDays(today);
+        dayChecklistDate.setText("Ngày " + today.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            + " · Thử nghiệm, không tự đăng bài");
+        dayChecklist.removeAllViews();
+        addTask(dayChecklist, date, "morning", "07:00 · Soạn bài / đăng Story");
+        addTask(dayChecklist, date, "noon", "12:00 · Xem thông báo / trả lời thủ công");
+        addTask(dayChecklist, date, "evening", "19:00 · Duyệt và đăng bài");
+        addTask(dayChecklist, date, "night", "21:00 · Kiểm tra kết quả");
+    }
+
+    private void showPlanDays(LocalDate today) {
+        if (planIdeas == null || planExpandButton == null) return;
+        planIdeas.removeAllViews();
+        int count = showAllPlanDays ? 7 : 3;
+        for (int i = 0; i < count; i++) {
+            LocalDate day = today.plusDays(i);
+            TextView row = text(day.format(DateTimeFormatter.ofPattern("dd/MM"))
+                + "  ·  " + ContentSchedule.ideaFor(day), 13, INK, false);
+            row.setPadding(0, dp(6), 0, dp(3));
+            planIdeas.addView(row);
+        }
+        planExpandButton.setText(showAllPlanDays ? "Thu gọn còn 3 ngày" : "Xem đủ 7 ngày");
     }
 
     private EditText metricField(LinearLayout container, String label, String value) {
@@ -559,10 +601,10 @@ public final class MainActivity extends Activity {
     private LinearLayout card(LinearLayout parent, String heading) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(17), dp(17), dp(17), dp(18));
+        card.setPadding(dp(16), dp(15), dp(16), dp(16));
         card.setBackground(rounded(Color.WHITE, 20, BORDER));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.bottomMargin = dp(14);
+        params.bottomMargin = dp(12);
         parent.addView(card, params);
         TextView title = text(heading, 18, INK, true);
         title.setPadding(0, 0, 0, dp(9));

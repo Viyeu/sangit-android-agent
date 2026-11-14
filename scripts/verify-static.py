@@ -48,7 +48,10 @@ assert 'MCP độc lập' in java and 'mcpClient.pair' in java
 assert 'activateTab(selectedTab, false)' in java
 assert 'tabPages[i].setVisibility' in java
 assert 'selected_tab' in java
-assert "versionName '0.3.2'" in (root / 'app/build.gradle').read_text()
+assert 'refreshDailyContent()' in java and 'showPlanDays(today)' in java
+assert 'mcp-android.example.com' not in java
+assert 'show_all_plan_days' in java
+assert "versionName '0.3.3'" in (root / 'app/build.gradle').read_text()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()

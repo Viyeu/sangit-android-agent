@@ -1,4 +1,4 @@
-name: SangIT Android Agent v0.3.2 Mobile UX Debug APK
+name: SangIT Android Agent v0.3.3 Mobile UX Daily Refresh Debug APK
 
 on:
   workflow_dispatch:
@@ -75,12 +75,12 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify "$APK"
           SHA=$(sha256sum "$APK" | awk '{print $1}')
           {
-            echo '# SangIT Android Agent v0.3.2 — Mobile UX Debug Build Receipt'
+            echo '# SangIT Android Agent v0.3.3 — Mobile UX Daily Refresh Debug Build Receipt'
             echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo "- GitHub SHA: ${GITHUB_SHA}"
             echo "- APK SHA-256: ${SHA}"
             echo '- Package: vn.sangit.androidagent'
-            echo '- Version: 0.3.2 / code 5'
+            echo '- Version: 0.3.3 / code 6'
             echo '- Variant: debug, not signed production release'
             echo '- Offline Java assertions: 49/49 PASS'
             echo '- Android physical-device E2E: NOT RUN'
@@ -90,7 +90,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: sangit-android-agent-v0.3.2-mobile-ui-debug
+          name: sangit-android-agent-v0.3.3-mobile-ux-debug
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             .codex/CI-BUILD-REPORT.md
