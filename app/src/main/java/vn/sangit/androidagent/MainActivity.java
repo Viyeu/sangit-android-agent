@@ -272,10 +272,10 @@ public final class MainActivity extends Activity {
             String prompt = "Hãy viết lại phản hồi Facebook cá nhân tự nhiên, thân thiện, ngắn gọn, "
                 + "không tự nhận đã kiểm tra hay báo giá khi chưa có bằng chứng. "
                 + "Không nhắc thông tin cá nhân của người khác. Chỉ đưa ra 1 câu trả lời để tôi tự duyệt:\n\n" + text;
-            Intent share = new Intent(Intent.ACTION_SEND);
-            share.setType("text/plain");
-            share.putExtra(Intent.EXTRA_TEXT, prompt);
-            try { startActivity(Intent.createChooser(share, "Chọn ChatGPT hoặc ứng dụng AI")); }
+            Intent aiShare = new Intent(Intent.ACTION_SEND);
+            aiShare.setType("text/plain");
+            aiShare.putExtra(Intent.EXTRA_TEXT, prompt);
+            try { startActivity(Intent.createChooser(aiShare, "Chọn ChatGPT hoặc ứng dụng AI")); }
             catch (Exception error) { Toast.makeText(this, "Không mở được ứng dụng chia sẻ", Toast.LENGTH_SHORT).show(); }
         });
         reply.addView(askAi);
