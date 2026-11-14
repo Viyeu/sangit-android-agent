@@ -1,0 +1,57 @@
+name: Publish SangIT Android Agent v0.3.6 Preview (verified APK)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-android-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-verified-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download previous successful Preview APK artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 43651813498 --repo "$GITHUB_REPOSITORY" \
+            --name sangit-android-agent-v0.3.6-side-by-side-preview-debug \
+            --dir dist
+
+      - name: Verify exact APK bytes and stable package identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=dist/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          echo '959d3a336f74f78b3e9275a347a33de6ce20f1405c6d01aed4098a5960c1a1fd  dist/app/build/outputs/apk/debug/app-debug.apk' | sha256sum --check --status
+          mkdir -p release
+          cp "$APK" release/SangIT-Android-Agent-v0.3.6-Preview.apk
+          sha256sum release/SangIT-Android-Agent-v0.3.6-Preview.apk
+
+      - name: Publish public GitHub prerelease without modifying original app
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=v0.3.6-preview
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Release already exists; refusing overwrite' >&2
+            exit 1
+          fi
+          gh release create "$TAG" release/SangIT-Android-Agent-v0.3.6-Preview.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "SangIT Android Agent v0.3.6 Preview (debug, side by side)" \
+            --target "${GITHUB_SHA}" \
+            --prerelease \
+            --notes "Preview app (vn.sangit.androidagent.preview) can be installed alongside the original app. Preserve the original app to avoid losing its private draft/metrics/checklist data. This APK is debug signed, has not completed Android device E2E, and standalone MCP HTTPS is not live. SHA-256: 959d3a336f74f78b3e9275a347a33de6ce20f1405c6d01aed4098a5960c1a1fd. Do not disable Google Play Protect."
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url,assets,isPrerelease
