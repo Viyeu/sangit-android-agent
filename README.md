@@ -4,3 +4,9 @@ Native Android debug APK. Tổng quan shows three manually entered metrics with 
 
 No new Android permissions or third-party libraries. All personal content stays local unless the user explicitly shares it. The MCP server is standalone, not SangIT Core, and live HTTPS pairing is not yet verified. This beta needs physical-device interaction testing.
 
+
+## v0.3.6 debug cài song song (Preview)
+- Android sẽ từ chối cập nhật APK có cùng package nhưng chữ ký khác. Các GitHub Actions cũ dùng debug keystore sinh lại ở mỗi runner; signer của các bản v0.3.1–0.3.6 đều khác nhau.
+- Bản debug mới dùng `vn.sangit.androidagent.preview`, hiển thị **SangIT Agent Preview**, cài song song với ứng dụng cũ `vn.sangit.androidagent` — **không gỡ bản cũ**.
+- Dữ liệu và bản nháp trong ứng dụng cũ **không tự chuyển** vào Preview vì mỗi package có bộ nhớ riêng. Bản cũ vẫn được giữ nguyên.
+- Đây là giải pháp kiểm thử an toàn, **không phải cập nhật in-place**. Để cập nhật lâu dài cần ký Android bằng một keystore riêng cố định được quản lý bí mật; không commit keystore hoặc mật khẩu vào repository công khai.

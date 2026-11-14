@@ -131,3 +131,11 @@ STATE: **v0.3.5 SOURCE + DEBUG APK CI PASS / ANDROID DEVICE E2E PENDING**.
 - Device interaction E2E is NOT RUN: verify narrow screen 320dp; keyboard focus, four tabs and two writing modes without draft loss; metrics edit collapse; checklist day change/progress; Facebook Sharesheet and Calendar save/cancel; MCP HTTPS test and screen rotation. Live independent MCP server/OAuth is still unavailable.
 - No SangIT Core/VPS/Panel/WordPress/Facebook-production changes. APK remains debug-signed and is not a production release.
 STATE: **v0.3.6 DEBUG APK VERIFIED / PHYSICAL ANDROID 16 UX E2E PENDING / LIVE MCP BLOCKED**.
+
+## 2026-11-15 — Root cause package conflict + side-by-side Preview build
+- Physical Android 16 screenshot shows INSTALL_FAILED_UPDATE_INCOMPATIBLE-like installer dialog: package conflicts with existing application (exact Android installer code not supplied).
+- Independently parsed APK Signature Scheme v2 signing blocks on existing generated APKs. Signer certificate SHA-256 differs for each previous debug build, including v0.3.5 `02eee0ea1e117b766c34519b2c0853268df1c87c4d50e54aa231bbc6134fe34c` and v0.3.6 `1ee59e01b9d6e51c268b1410ae9f14588db3a989d6a61837af339339fda5cf1a`. Root cause: independent ephemeral debug signing identity in GitHub Actions.
+- Do not uninstall existing app: allowBackup=false and SharedPreferences app-private; uninstall could lose drafts, metrics, checklist.
+- Scoped workaround: debug-only applicationIdSuffix `.preview` and label `SangIT Agent Preview`; release applicationId unchanged. All source functionality, permissions and production config unchanged.
+- CI added checks for preview applicationId, visible label and no additional permissions. This Preview installs as a separate application, existing private data does not migrate. This does not fix repeat signing key rotation for future Preview updates.
+- Permanent fix requires dedicated stable Android signing key in a secure store, not in GitHub public source. Physical install E2E remains pending.

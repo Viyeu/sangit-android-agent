@@ -15,6 +15,13 @@ android {
     }
 
     buildTypes {
+        // Side-by-side debug package: protects data from a previously installed
+        // debug APK signed with an unrelated ephemeral GitHub Actions key.
+        // Production package identity is left unchanged.
+        debug {
+            applicationIdSuffix '.preview'
+            versionNameSuffix '-preview'
+        }
         release {
             minifyEnabled false
             // No signing secrets in source control. Configure signing separately.

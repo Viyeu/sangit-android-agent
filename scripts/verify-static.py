@@ -77,7 +77,17 @@ for icon in icons:
     assert vector.tag.endswith('vector')
     assert any(x.tag.endswith('path') and x.attrib.get(ns + 'pathData') for x in vector.iter()), icon
 
-assert "versionName '0.3.6'" in (root / 'app/build.gradle').read_text()
+gradle = (root / 'app/build.gradle').read_text()
+assert "versionName '0.3.6'" in gradle
+assert "applicationId 'vn.sangit.androidagent'" in gradle
+assert "applicationIdSuffix '.preview'" in gradle
+assert "versionNameSuffix '-preview'" in gradle
+preview_manifest = ET.parse(root / 'app/src/debug/AndroidManifest.xml').getroot()
+preview_app = preview_manifest.find('application')
+assert preview_app is not None and preview_app.get(ns + 'label') == 'SangIT Agent Preview'
+assert not preview_manifest.findall('uses-permission')
+assert not preview_app.findall('service')
+
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()

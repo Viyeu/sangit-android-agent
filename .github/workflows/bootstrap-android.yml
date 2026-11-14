@@ -1,4 +1,4 @@
-name: SangIT Android Agent v0.3.6 UX Dashboard and State-Aware MCP Debug APK
+name: SangIT Android Agent v0.3.6 Side-by-Side Preview Debug APK
 
 on:
   workflow_dispatch:
@@ -71,16 +71,19 @@ jobs:
           set -euo pipefail
           APK=app/build/outputs/apk/debug/app-debug.apk
           test -s "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -n 20
+          BADGING="$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | head -n 20
+          printf '%s\n' "$BADGING" | grep -F "package: name='vn.sangit.androidagent.preview'"
+          printf '%s\n' "$BADGING" | grep -F "application-label:'SangIT Agent Preview'"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify "$APK"
           SHA=$(sha256sum "$APK" | awk '{print $1}')
           {
-            echo '# SangIT Android Agent v0.3.6 — UX Dashboard Debug Build Receipt'
+            echo '# SangIT Android Agent v0.3.6 — Side-by-Side Preview Build Receipt'
             echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo "- GitHub SHA: ${GITHUB_SHA}"
             echo "- APK SHA-256: ${SHA}"
-            echo '- Package: vn.sangit.androidagent'
-            echo '- Version: 0.3.6 / code 9'
+            echo '- Package: vn.sangit.androidagent.preview'
+            echo '- Version: 0.3.6-preview / code 9'
             echo '- Variant: debug, not signed production release'
             echo '- Offline Java assertions: 49/49 PASS'
             echo '- Android physical-device E2E: NOT RUN'
@@ -90,7 +93,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: sangit-android-agent-v0.3.6-ux-dashboard-debug
+          name: sangit-android-agent-v0.3.6-side-by-side-preview-debug
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             .codex/CI-BUILD-REPORT.md
