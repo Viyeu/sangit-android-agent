@@ -1,3 +1,12 @@
+# SangIT Android Agent v0.3.2 — Mobile UI/UX beta
+
+- Bốn mục điều hướng phía dưới: Tổng quan, Bài viết, Lịch, MCP.
+- Giao diện sáng xanh ngọc, card rõ ràng, nút từ 48–52dp, nhập và chuyển trang không xóa nháp.
+- Giữ nguyên quyền INTERNET tối thiểu, MCP độc lập, các thao tác Facebook và Lịch; không bật Notification Listener.
+- Build debug APK bằng GitHub Actions; kiểm thử trực tiếp trên Android 16 còn chờ xác minh.
+
+---
+
 # SangIT Android Agent v0.3.1 (Play Protect minimal permissions)
 
 This variant removes the notification listener from the Android manifest and user interface after the Play Protect block reported on Android 16. It retains explicit, outbound HTTPS pairing to an independent MCP server, and manual Facebook/Messenger shortcuts. Sensitive notification access cannot be granted. This is a debug APK; installation on the physical device is pending. Do not disable Play Protect.

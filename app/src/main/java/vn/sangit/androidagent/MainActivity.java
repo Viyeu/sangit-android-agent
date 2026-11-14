@@ -8,6 +8,8 @@ import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.Context;
 import android.graphics.Color;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.RippleDrawable;
 import android.graphics.Insets;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -39,16 +41,23 @@ import java.time.ZoneId;
 /** Single-screen, local-first Android personal Facebook assistant. */
 public final class MainActivity extends Activity {
     private static final int PICK_IMAGE = 401;
-    private static final int PRIMARY = Color.rgb(14, 104, 220);
-    private static final int INK = Color.rgb(25, 39, 57);
-    private static final int MUTED = Color.rgb(93, 110, 132);
-    private static final int BACKGROUND = Color.rgb(246, 249, 253);
-    private static final int BORDER = Color.rgb(223, 232, 242);
+    private static final int PRIMARY = Color.rgb(0, 112, 116);
+    private static final int INK = Color.rgb(28, 42, 55);
+    private static final int MUTED = Color.rgb(97, 113, 129);
+    private static final int BACKGROUND = Color.rgb(245, 248, 250);
+    private static final int BORDER = Color.rgb(221, 230, 235);
+    private static final int SOFT = Color.rgb(229, 245, 243);
     private static final String PROFILE = "https://www.facebook.com/sangitinfo/";
     private static final String FACEBOOK_APP = "https://www.facebook.com/";
 
     private LocalStore store;
     private final McpDeviceClient mcpClient = new McpDeviceClient();
+    private final LinearLayout[] tabPages = new LinearLayout[4];
+    private final TextView[] tabLabels = new TextView[4];
+    private ScrollView contentScroll;
+    private TextView pageHeader;
+    private TextView pageSubtitle;
+    private int selectedTab = 0;
     private TextView metricsSummary;
     private TextView reminderSummary;
     private EditText followerInput;
@@ -74,6 +83,7 @@ public final class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         store = new LocalStore(this);
         if (savedInstanceState != null) {
+            selectedTab = Math.max(0, Math.min(3, savedInstanceState.getInt("selected_tab", 0)));
             restoredPost = savedInstanceState.getString("draft_editor");
             restoredReply = savedInstanceState.getString("reply_editor");
             restoredTemplate = savedInstanceState.getInt("template", 0);
@@ -94,6 +104,7 @@ public final class MainActivity extends Activity {
         if (postEditor != null) outState.putString("draft_editor", postEditor.getText().toString());
         if (replyEditor != null) outState.putString("reply_editor", replyEditor.getText().toString());
         if (selectedImage != null) outState.putString("image_uri", selectedImage.toString());
+        outState.putInt("selected_tab", selectedTab);
         outState.putInt("template", restoredTemplate);
         if (chosenReminder != null) outState.putLong("reminder_choice", chosenReminder.toInstant().toEpochMilli());
         if (followerInput != null) outState.putString("metrics_followers_input", followerInput.getText().toString());
@@ -119,33 +130,65 @@ public final class MainActivity extends Activity {
             });
         }
         ScrollView scroll = new ScrollView(this);
+        contentScroll = scroll;
         scroll.setFillViewport(true);
         scroll.setClipToPadding(false);
         scroll.setVerticalScrollBarEnabled(false);
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(16), dp(18), dp(16), dp(32));
+        body.setPadding(dp(16), dp(16), dp(16), dp(24));
         scroll.addView(body);
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
+        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
         setContentView(root);
 
-        TextView eyebrow = text("SANGIT · ANDROID AGENT 0.3", 12, PRIMARY, true);
+        TextView eyebrow = text("SANGIT  /  ANDROID AGENT 0.3.2", 11, PRIMARY, true);
+        eyebrow.setLetterSpacing(0.08f);
         body.addView(eyebrow);
-        TextView header = text("Chăm sóc Facebook cá nhân", 25, INK, true);
-        header.setPadding(0, dp(8), 0, dp(5));
-        body.addView(header);
-        TextView subtitle = text("Phan Văn Sang · facebook.com/sangitinfo", 14, MUTED, false);
-        body.addView(subtitle);
-        body.addView(space(16));
+        pageHeader = text("Tổng quan", 27, INK, true);
+        pageHeader.setPadding(0, dp(8), 0, dp(4));
+        body.addView(pageHeader);
+        pageSubtitle = text("Công cụ chăm sóc Facebook cá nhân", 13, MUTED, false);
+        body.addView(pageSubtitle);
+        body.addView(space(17));
 
-        LinearLayout statusCard = card(body, "An toàn · Dữ liệu cá nhân chỉ trên thiết bị");
+        for (int i = 0; i < tabPages.length; i++) {
+            LinearLayout page = new LinearLayout(this);
+            page.setOrientation(LinearLayout.VERTICAL);
+            body.addView(page);
+            tabPages[i] = page;
+        }
+        LinearLayout homePage = tabPages[0];
+        LinearLayout writingPage = tabPages[1];
+        LinearLayout schedulePage = tabPages[2];
+        LinearLayout connectPage = tabPages[3];
+
+        LinearLayout navigation = new LinearLayout(this);
+        navigation.setOrientation(LinearLayout.HORIZONTAL);
+        navigation.setPadding(dp(8), dp(7), dp(8), dp(8));
+        navigation.setBackgroundColor(Color.WHITE);
+        navigation.setElevation(dp(8));
+        String[] names = {"Tổng quan", "Bài viết", "Lịch", "MCP"};
+        for (int i = 0; i < names.length; i++) {
+            final int index = i;
+            TextView tab = text(names[i], 13, MUTED, false);
+            tab.setGravity(Gravity.CENTER);
+            tab.setMinHeight(dp(52));
+            tab.setFocusable(true);
+            tab.setContentDescription("Mở mục " + names[i]);
+            tab.setOnClickListener(v -> activateTab(index, true));
+            navigation.addView(tab, new LinearLayout.LayoutParams(0, dp(52), 1f));
+            tabLabels[i] = tab;
+        }
+        root.addView(navigation, new LinearLayout.LayoutParams(-1, -2));
+
+        LinearLayout statusCard = card(homePage, "Riêng tư và chủ động");
         statusCard.addView(text("Không đăng tự động, không đọc nội dung tin nhắn. Chỉ gửi trạng thái ứng dụng khi bạn chủ động ghép cặp và xác nhận.", 13, MUTED, false));
         statusCard.addView(space(9));
         Button profileBtn = button("Mở hồ sơ Facebook", false);
         profileBtn.setOnClickListener(v -> openUrl(PROFILE));
         statusCard.addView(profileBtn);
 
-        LinearLayout dashboard = card(body, "1 · Tổng quan (nhập số liệu thật)");
+        LinearLayout dashboard = card(homePage, "Thống kê tự nhập");
         dashboard.addView(text("Lấy số liệu tại Bảng điều khiển chuyên nghiệp Facebook rồi nhập thủ công. "
             + "Agent không có API đọc thống kê cá nhân.", 12, MUTED, false));
         metricsSummary = text("Chưa nhập số liệu", 14, INK, true);
@@ -175,13 +218,8 @@ public final class MainActivity extends Activity {
         });
         dashboard.addView(saveMetrics);
 
-        LinearLayout notice = card(body, "2 · Thông báo Facebook / Messenger");
-        notice.addView(text("Bản này không xin quyền đọc thông báo Android. "
-            + "Bạn có thể mở Facebook hoặc Messenger để kiểm tra thủ công.", 13, MUTED, false));
-
-        LinearLayout inbox = card(body, "3 · Hộp việc cần xử lý");
-        inbox.addView(text("Bấm để tự xem thông báo hoặc tin nhắn trong ứng dụng chính thức. "
-            + "Agent không đọc hoặc lưu nội dung người gửi.", 12, MUTED, false));
+        LinearLayout inbox = card(homePage, "Lối tắt Facebook");
+        inbox.addView(text("Không xin quyền đọc thông báo hay tin nhắn. Bạn tự mở ứng dụng để xử lý.", 13, MUTED, false));
         Button facebookNotices = button("Mở thông báo Facebook", false);
         facebookNotices.setOnClickListener(v -> openUrl("https://www.facebook.com/notifications/"));
         inbox.addView(facebookNotices);
@@ -189,7 +227,7 @@ public final class MainActivity extends Activity {
         messenger.setOnClickListener(v -> openUrl("https://www.messenger.com/"));
         inbox.addView(messenger);
 
-        LinearLayout post = card(body, "4 · Soạn và chia sẻ bài viết");
+        LinearLayout post = card(writingPage, "Soạn và chia sẻ bài viết");
         post.addView(text("Chọn mẫu, sửa nội dung theo ca thực tế; bạn tự xác nhận trong Facebook.", 13, MUTED, false));
         post.addView(space(8));
         Spinner templates = new Spinner(this);
@@ -229,7 +267,7 @@ public final class MainActivity extends Activity {
         post.addView(copy);
         post.addView(text("Lưu ý: Một số phiên bản Facebook không nhận nội dung chữ khi chia sẻ kèm ảnh. Có thể dùng Sao chép rồi dán vào bài trước khi đăng.", 12, MUTED, false));
 
-        LinearLayout reply = card(body, "5 · Gợi ý phản hồi (offline)");
+        LinearLayout reply = card(writingPage, "Gợi ý phản hồi");
         reply.addView(text("Chọn loại tình huống, Agent tạo câu trả lời theo mẫu an toàn. "
             + "Đây là quy tắc cục bộ, KHÔNG phải AI sinh văn bản hay đọc tin nhắn Facebook.", 12, MUTED, false));
         Spinner category = new Spinner(this);
@@ -267,7 +305,7 @@ public final class MainActivity extends Activity {
         reply.addView(copyReply);
         reply.addView(text("Không dán thông tin riêng tư của khách hàng vào phản hồi công khai.", 12, MUTED, false));
 
-        LinearLayout planner = card(body, "6 · Lịch nội dung & nhắc đăng");
+        LinearLayout planner = card(schedulePage, "Lịch nội dung 7 ngày");
         planner.addView(text("Gợi ý 7 ngày · 1 bài/ngày, 2 Story/ngày chỉ là mục tiêu thử nghiệm. "
             + "Nhắc qua ứng dụng Lịch do bạn tự xác nhận; không tự đăng Facebook.", 12, MUTED, false));
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -297,7 +335,7 @@ public final class MainActivity extends Activity {
         planner.addView(clearReminder);
         planner.addView(text("Lưu trong Agent không tự tạo chuông báo. Bạn phải bấm Lưu/Xác nhận trong ứng dụng Lịch.", 12, MUTED, false));
 
-        LinearLayout schedule = card(body, "7 · Checklist chăm sóc hôm nay");
+        LinearLayout schedule = card(schedulePage, "Việc hôm nay");
         String date = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).toString();
         schedule.addView(text("Ngày " + date + " · Thử nghiệm, không tự đăng bài", 12, MUTED, false));
         schedule.addView(space(6));
@@ -306,19 +344,21 @@ public final class MainActivity extends Activity {
         addTask(schedule, date, "evening", "19:00 · Duyệt và đăng bài");
         addTask(schedule, date, "night", "21:00 · Kiểm tra kết quả");
 
-        LinearLayout mcpPanel = card(body, "8 · ChatGPT ↔ Android (MCP độc lập)");
-        mcpPanel.addView(text("Chỉ gửi phiên bản Agent và Android SDK khi bạn bấm nút. Không đọc tin nhắn, nháp hoặc thống kê; không chạy nền.", 12, MUTED, false));
+        LinearLayout mcpPanel = card(connectPage, "Kết nối ChatGPT · MCP độc lập");
+        mcpPanel.addView(text("Máy chủ MCP cần HTTPS và mã ghép cặp hợp lệ. Chưa có máy chủ thì chưa thể kết nối.", 13, MUTED, false));
         EditText endpoint = editor("", 1);
         endpoint.setSingleLine(true);
-        endpoint.setHint("https://android-mcp.sangit.vn");
+        endpoint.setHint("https://mcp-android.example.com");
+        endpoint.setContentDescription("Địa chỉ máy chủ MCP HTTPS độc lập");
         mcpPanel.addView(endpoint);
         EditText pairingCode = editor("", 1);
         pairingCode.setSingleLine(true);
         pairingCode.setHint("Nhập mã ghép cặp do ChatGPT cấp");
+        pairingCode.setContentDescription("Mã ghép cặp một lần");
         mcpPanel.addView(pairingCode);
-        TextView pairingState = text("Chưa kết nối · cần máy chủ HTTPS MCP độc lập", 13, INK, true);
+        TextView pairingState = text("Chưa kết nối", 14, PRIMARY, true);
         mcpPanel.addView(pairingState);
-        Button pairButton = button("Ghép cặp MCP", false);
+        Button pairButton = button("Ghép cặp an toàn", true);
         pairButton.setOnClickListener(v -> {
             pairingState.setText("Đang xác minh mã...");
             mcpClient.pair(endpoint.getText().toString(), pairingCode.getText().toString(),
@@ -332,16 +372,42 @@ public final class MainActivity extends Activity {
         statusButton.setOnClickListener(v -> mcpClient.checkIn(
             message -> runOnUiThread(() -> pairingState.setText(message))));
         mcpPanel.addView(statusButton);
-        Button disconnectButton = button("Ngắt kết nối và thu hồi phiên", false);
+        Button disconnectButton = button("Ngắt kết nối / thu hồi phiên", false);
         disconnectButton.setOnClickListener(v -> mcpClient.disconnect(
             message -> runOnUiThread(() -> pairingState.setText(message))));
         mcpPanel.addView(disconnectButton);
-        mcpPanel.addView(text("Máy chủ Android MCP độc lập, không qua SangIT Core. Phiên chỉ ở bộ nhớ; đóng ứng dụng cần ghép cặp lại.", 12, MUTED, false));
+        mcpPanel.addView(text("Kết nối trực tiếp ChatGPT qua máy chủ MCP độc lập có HTTPS và xác thực. Phiên ghép cặp chỉ giữ trong bộ nhớ; đóng ứng dụng cần ghép cặp lại.", 12, MUTED, false));
 
-        TextView footer = text("SangIT Android Agent · v0.3.0 beta · Thông báo chỉ đếm khi bạn bật", 12, MUTED, false);
+        TextView footer = text("SangIT Android Agent · v0.3.2 beta\nChỉ chia sẻ khi bạn xác nhận", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER_HORIZONTAL);
         footer.setPadding(0, dp(10), 0, 0);
-        body.addView(footer);
+        connectPage.addView(footer);
+        activateTab(selectedTab, false);
+    }
+
+    /** Page switching hides only page containers. Editors and drafts stay mounted. */
+    private void activateTab(int index, boolean scrollTop) {
+        if (index < 0 || index >= tabPages.length) return;
+        selectedTab = index;
+        String[] titles = {"Tổng quan", "Soạn nội dung", "Lịch chăm sóc", "Kết nối ChatGPT"};
+        String[] subtitles = {
+            "Công việc Facebook cá nhân trong một nơi",
+            "Viết bài và phản hồi theo cách của bạn",
+            "Kế hoạch mỗi ngày, không tự đăng bài",
+            "MCP riêng, không dùng máy chủ khác"
+        };
+        pageHeader.setText(titles[index]);
+        pageSubtitle.setText(subtitles[index]);
+        for (int i = 0; i < tabPages.length; i++) {
+            tabPages[i].setVisibility(i == index ? View.VISIBLE : View.GONE);
+            boolean active = i == index;
+            tabLabels[i].setTextColor(active ? PRIMARY : MUTED);
+            tabLabels[i].setTypeface(null, active ? Typeface.BOLD : Typeface.NORMAL);
+            tabLabels[i].setBackground(rounded(active ? SOFT : Color.TRANSPARENT, 13,
+                active ? SOFT : Color.TRANSPARENT));
+            tabLabels[i].setSelected(active);
+        }
+        if (scrollTop && contentScroll != null) contentScroll.post(() -> contentScroll.scrollTo(0, 0));
     }
 
     private EditText metricField(LinearLayout container, String label, String value) {
@@ -432,7 +498,8 @@ public final class MainActivity extends Activity {
         CheckBox check = new CheckBox(this);
         check.setText(label);
         check.setTextColor(INK);
-        check.setTextSize(14f);
+        check.setTextSize(15f);
+        check.setMinHeight(dp(48));
         check.setChecked(store.taskDone(id, date));
         check.setOnCheckedChangeListener((button, value) -> store.setTaskDone(id, date, value));
         container.addView(check);
@@ -492,12 +559,12 @@ public final class MainActivity extends Activity {
     private LinearLayout card(LinearLayout parent, String heading) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(16), dp(16), dp(16), dp(16));
-        card.setBackground(rounded(Color.WHITE, 18, BORDER));
+        card.setPadding(dp(17), dp(17), dp(17), dp(18));
+        card.setBackground(rounded(Color.WHITE, 20, BORDER));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.bottomMargin = dp(12);
+        params.bottomMargin = dp(14);
         parent.addView(card, params);
-        TextView title = text(heading, 17, INK, true);
+        TextView title = text(heading, 18, INK, true);
         title.setPadding(0, 0, 0, dp(9));
         card.addView(title);
         return card;
@@ -505,14 +572,16 @@ public final class MainActivity extends Activity {
 
     private EditText editor(String value, int lines) {
         EditText input = new EditText(this);
-        input.setTextSize(14f);
+        input.setTextSize(15f);
         input.setTextColor(INK);
         input.setGravity(Gravity.TOP | Gravity.START);
         input.setMinLines(lines);
         input.setMaxLines(Math.max(lines, 14));
         input.setSingleLine(false);
-        input.setPadding(dp(10), dp(10), dp(10), dp(10));
-        input.setBackground(rounded(BACKGROUND, 12, BORDER));
+        input.setPadding(dp(14), dp(13), dp(14), dp(13));
+        input.setMinHeight(dp(52));
+        input.setHintTextColor(MUTED);
+        input.setBackground(rounded(BACKGROUND, 14, BORDER));
         input.setText(value);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dp(7);
@@ -525,11 +594,14 @@ public final class MainActivity extends Activity {
         Button button = new Button(this);
         button.setAllCaps(false);
         button.setText(label);
-        button.setTextSize(14f);
+        button.setTextSize(15f);
         button.setTypeface(null, Typeface.BOLD);
         button.setTextColor(primary ? Color.WHITE : INK);
-        button.setMinHeight(dp(44));
-        button.setBackground(rounded(primary ? PRIMARY : BACKGROUND, 12, primary ? PRIMARY : BORDER));
+        button.setMinHeight(dp(52));
+        button.setPadding(dp(13), dp(10), dp(13), dp(10));
+        button.setBackground(new RippleDrawable(ColorStateList.valueOf(
+            primary ? 0x44FFFFFF : 0x22007074),
+            rounded(primary ? PRIMARY : BACKGROUND, 14, primary ? PRIMARY : BORDER), null));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dp(7);
         button.setLayoutParams(params);

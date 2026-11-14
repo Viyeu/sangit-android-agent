@@ -45,7 +45,10 @@ assert 'store.saveReminder' in java
 assert 'ContentSchedule.ideaFor' in java
 assert 'Không đăng tự động' in java
 assert 'MCP độc lập' in java and 'mcpClient.pair' in java
-assert "versionName '0.3.1'" in (root / 'app/build.gradle').read_text()
+assert 'activateTab(selectedTab, false)' in java
+assert 'tabPages[i].setVisibility' in java
+assert 'selected_tab' in java
+assert "versionName '0.3.2'" in (root / 'app/build.gradle').read_text()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()

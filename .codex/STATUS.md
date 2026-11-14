@@ -49,3 +49,9 @@ CURRENT STATE: **DEBUG APK BUILT AND VERIFIED / DEVICE E2E PENDING / PRODUCTION 
 - Extracted debug APK 35,716 bytes, SHA-256 d6c42e9e44c3db209177bf777baa5d3543012d99384eb0dbddadd0e68d334e55, verified artifact ZIP CRC and APK checksum independently.
 - Android physical installation and Play Protect outcome: NOT TESTED. Cannot claim Google Play Protect accepts it until device verifies. If blocked again, collect exact new warning and examine alternate causes or Google Play Protect appeal. Do not bypass Play Protect.
 - Standalone MCP server HTTPS/OAuth LIVE still BLOCKED; SangIT Core, VPS/Panel and production untouched during this fix.
+
+## 2026-11-14 — Android Agent v0.3.2 UI/UX
+- Scope: UI MainActivity, Android version, static assertions, CI labels and documentation. No Core/VPS/standalone backend edits.
+- Reorganized existing functional sections into 4 persistent bottom tabs (Tổng quan, Bài viết, Lịch, MCP), 52dp tap targets, updated palette/cards/button feedback and fixed stale footer.
+- Tab changes only visibility, do not destroy editors or current in-memory MCP session. Existing handlers compared against prior source and retained.
+- Offline: 49/49 Java assertions, 10/10 Java syntax, privacy/static checks PASS on prepared source. CI APK and device responsive/E2E remain separate gates.
