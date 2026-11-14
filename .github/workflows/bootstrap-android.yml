@@ -41,7 +41,7 @@ jobs:
           test -x "$SDKMANAGER_PATH"
           echo "SDKMANAGER_PATH=$SDKMANAGER_PATH" >> "$GITHUB_ENV"
           "$SDKMANAGER_PATH" --version
-          yes | "$SDKMANAGER_PATH" --licenses >/dev/null
+          printf 'y\n%.0s' {1..100} | "$SDKMANAGER_PATH" --licenses >/dev/null
 
       - name: Install Android SDK 35
         run: '"$SDKMANAGER_PATH" --install "platforms;android-35" "build-tools;35.0.0"'
