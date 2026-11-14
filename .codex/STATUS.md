@@ -121,3 +121,13 @@ STATE: **v0.3.5 SOURCE + DEBUG APK CI PASS / ANDROID DEVICE E2E PENDING**.
 - MCP: pair input and CTA only while unpaired, send/revoke only while paired; activity state derived from internal device token, not reply text. Busy state disables actions, errors remain visible; protocol unchanged; outbound status appVersion now matches actual 0.3.6.
 - Read-only isPaired() accessor uses volatile state for UI thread visibility; no new permissions/dependencies or backend/Core changes.
 - Handler count regression: 12 checked; unchanged. CI, artifact hash, physical Android interaction E2E must be verified separately.
+
+## 2026-11-15 — v0.3.6 Dashboard/UX CI and APK VERIFIED
+- Source feature commit 8b4c51ce316a035d47b211babd2e52833423187b; static-assertion-only repair commit b14e0a1935a0b548b28c39461db919d98f2543fa.
+- GitHub Actions https://github.com/Viyeu/sangit-android-agent/actions/runs/43650941489: SUCCESS at source SHA b14e0a1935a0b548b28c39461db919d98f2543fa.
+- CI offline Java 49/49, parser 10/10 Java source, static privacy/ui guard, Gradle SDK35 JDK17 assembleDebug, Android manifest notification listener prohibition, and apksigner verification PASS.
+- Artifact ZIP CRC PASS and extracted APK ZIP integrity PASS; 20/20 native vector icons present; 55,131 bytes SHA-256 74bb294fcb7e11ede7a2eae8b1517b0fe2b41fbe004cd822d4283440902cc3ae. App ID vn.sangit.androidagent, version 0.3.6/code9.
+- Source comparison confirms 12/12 existing handler categories have same call counts; new UI mode switch preserves editors; same LocalStore keys; MCP isPaired read-only accessor and volatile fields keep thread-visible pairing state and retain standalone protocol. Check-in appVersion 0.3.6.
+- Device interaction E2E is NOT RUN: verify narrow screen 320dp; keyboard focus, four tabs and two writing modes without draft loss; metrics edit collapse; checklist day change/progress; Facebook Sharesheet and Calendar save/cancel; MCP HTTPS test and screen rotation. Live independent MCP server/OAuth is still unavailable.
+- No SangIT Core/VPS/Panel/WordPress/Facebook-production changes. APK remains debug-signed and is not a production release.
+STATE: **v0.3.6 DEBUG APK VERIFIED / PHYSICAL ANDROID 16 UX E2E PENDING / LIVE MCP BLOCKED**.
