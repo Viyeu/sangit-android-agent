@@ -103,3 +103,12 @@ STATE: **v0.3.4 DEBUG APK + SOURCE VERIFIED / PHYSICAL UI E2E PENDING**.
 - Preserves existing 4 tabs/20 native vectors, all actions, SharedPreferences keys, package ID, permissions and standalone MCP protocol.
 - Static handler-count preflight: 12 handler paths preserved.
 - CI/manifest/signature and physical Android E2E remain separate verification gates. No Core/VPS/production changes.
+
+## 2026-11-15 — v0.3.5 compact UI/UX debug APK VERIFIED
+- GitHub Actions run https://github.com/Viyeu/sangit-android-agent/actions/runs/43623143154: SUCCESS, source commit e3d1f875243878a458296dab6efeb2834b7428e3.
+- CI SDK35 + JDK17 + Gradle8.9: 49/49 Java assertions, 10/10 Java syntax, static UI/permissions guards, assembled APK and apksigner verify PASS; compiled manifest retains INTERNET only with no NotificationListenerService.
+- Artifact ZIP CRC PASS; APK SHA-256 37368b5fdced608ed1b314a05f09d80a4145b7e4efb4b8a0ad736f68e44ea05c, 51,815 bytes, package vn.sangit.androidagent, version 0.3.5/code8; 20 vector resources verified in APK ZIP.
+- UX scope: compact header/cards, adaptive dual-action shortcuts (>=360dp, narrow fallback), lighter editors and help text, 48dp secondary/52dp primary actions, keyboard adjustment and MCP state panel. Empty Calendar draft takes user to Bài viết.
+- 12 categories of preexisting handlers checked for unchanged call counts; all callbacks, local storage keys, 4 tabs, manual share and standalone MCP preserved.
+- DEVICE E2E NOT RUN: requires Android 16 smoke of tab taps, narrow viewport, keyboard focus, share/photo/Calendar/MCP and upgrade without losing draft. No Core/VPS/Panel/WordPress/backend change.
+STATE: **v0.3.5 SOURCE + DEBUG APK CI PASS / ANDROID DEVICE E2E PENDING**.
