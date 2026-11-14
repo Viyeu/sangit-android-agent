@@ -51,6 +51,7 @@ public final class MainActivity extends Activity {
     private static final String FACEBOOK_APP = "https://www.facebook.com/";
 
     private LocalStore store;
+    private final McpDeviceClient mcpClient = new McpDeviceClient();
     private TextView notificationSummary;
     private TextView metricsSummary;
     private TextView reminderSummary;
@@ -133,7 +134,7 @@ public final class MainActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
         setContentView(root);
 
-        TextView eyebrow = text("SANGIT · ANDROID AGENT 0.2", 12, PRIMARY, true);
+        TextView eyebrow = text("SANGIT · ANDROID AGENT 0.3", 12, PRIMARY, true);
         body.addView(eyebrow);
         TextView header = text("Chăm sóc Facebook cá nhân", 25, INK, true);
         header.setPadding(0, dp(8), 0, dp(5));
@@ -142,8 +143,8 @@ public final class MainActivity extends Activity {
         body.addView(subtitle);
         body.addView(space(16));
 
-        LinearLayout statusCard = card(body, "An toàn · Dữ liệu chỉ trên thiết bị");
-        statusCard.addView(text("Không đăng tự động, không đọc nội dung tin nhắn, không gửi dữ liệu về Core. Bạn duyệt mọi bài và câu trả lời trên Facebook.", 13, MUTED, false));
+        LinearLayout statusCard = card(body, "An toàn · Dữ liệu cá nhân chỉ trên thiết bị");
+        statusCard.addView(text("Không đăng tự động, không đọc nội dung tin nhắn. Chỉ gửi trạng thái ứng dụng khi bạn chủ động ghép cặp và xác nhận.", 13, MUTED, false));
         statusCard.addView(space(9));
         Button profileBtn = button("Mở hồ sơ Facebook", false);
         profileBtn.setOnClickListener(v -> openUrl(PROFILE));
@@ -331,11 +332,39 @@ public final class MainActivity extends Activity {
         addTask(schedule, date, "evening", "19:00 · Duyệt và đăng bài");
         addTask(schedule, date, "night", "21:00 · Kiểm tra kết quả");
 
-        LinearLayout core = card(body, "8 · SangIT Core (chưa kết nối)");
-        core.addView(text("Chưa ghép cặp · OFFLINE", 14, INK, true));
-        core.addView(text("Bản v0.2 không có quyền INTERNET và chưa tích hợp giao thức ghép cặp Core. Kết nối chỉ được phát triển khi có API được xác thực, quyền theo phiên và kiểm thử bảo mật.", 12, MUTED, false));
+        LinearLayout mcpPanel = card(body, "8 · ChatGPT ↔ Android (MCP độc lập)");
+        mcpPanel.addView(text("Chỉ gửi phiên bản Agent và Android SDK khi bạn bấm nút. Không đọc tin nhắn, nháp hoặc thống kê; không chạy nền.", 12, MUTED, false));
+        EditText endpoint = editor("", 1);
+        endpoint.setSingleLine(true);
+        endpoint.setHint("https://android-mcp.sangit.vn");
+        mcpPanel.addView(endpoint);
+        EditText pairingCode = editor("", 1);
+        pairingCode.setSingleLine(true);
+        pairingCode.setHint("Nhập mã ghép cặp do ChatGPT cấp");
+        mcpPanel.addView(pairingCode);
+        TextView pairingState = text("Chưa kết nối · cần máy chủ HTTPS MCP độc lập", 13, INK, true);
+        mcpPanel.addView(pairingState);
+        Button pairButton = button("Ghép cặp MCP", false);
+        pairButton.setOnClickListener(v -> {
+            pairingState.setText("Đang xác minh mã...");
+            mcpClient.pair(endpoint.getText().toString(), pairingCode.getText().toString(),
+                message -> runOnUiThread(() -> {
+                    pairingCode.setText("");
+                    pairingState.setText(message);
+                }));
+        });
+        mcpPanel.addView(pairButton);
+        Button statusButton = button("Gửi trạng thái theo yêu cầu", false);
+        statusButton.setOnClickListener(v -> mcpClient.checkIn(
+            message -> runOnUiThread(() -> pairingState.setText(message))));
+        mcpPanel.addView(statusButton);
+        Button disconnectButton = button("Ngắt kết nối và thu hồi phiên", false);
+        disconnectButton.setOnClickListener(v -> mcpClient.disconnect(
+            message -> runOnUiThread(() -> pairingState.setText(message))));
+        mcpPanel.addView(disconnectButton);
+        mcpPanel.addView(text("Máy chủ Android MCP độc lập, không qua SangIT Core. Phiên chỉ ở bộ nhớ; đóng ứng dụng cần ghép cặp lại.", 12, MUTED, false));
 
-        TextView footer = text("SangIT Android Agent · v0.2.0 · Thông báo chỉ đếm khi bạn bật", 12, MUTED, false);
+        TextView footer = text("SangIT Android Agent · v0.3.0 beta · Thông báo chỉ đếm khi bạn bật", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER_HORIZONTAL);
         footer.setPadding(0, dp(10), 0, 0);
         body.addView(footer);
