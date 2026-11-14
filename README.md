@@ -1,3 +1,11 @@
+# SangIT Android Agent v0.3.5 — Compact mobile-first UI
+
+Existing functionality is preserved: manual Facebook metrics, draft/preview/share, picture picking, offline reply templates, optional share-to-ChatGPT, 7-day plan/checklist, Calendar confirmation, and standalone HTTPS MCP pairing/status/disconnect.
+
+Changes: compact header and cards, 20 native icons retained, adaptive side-by-side secondary actions on normal phones (one-column fallback on narrow screens), smaller default editing surfaces, clearer pairing state and improved keyboard behavior.
+
+Only Android UI changes; no new permissions, dependencies, background tasks, API endpoints or Core integration. APK is a debug build; test device interactions before stable release.
+
 # SangIT Android Agent v0.3.2 — Mobile UI/UX beta
 
 - Bốn mục điều hướng phía dưới: Tổng quan, Bài viết, Lịch, MCP.

@@ -95,3 +95,11 @@ STATE: **UI v0.3.3 DEBUG APK BUILD VERIFIED / DEVICE INTERACTION E2E PENDING**.
 - Binary APK ZIP readback confirms 20 bundled res/drawable/ic_sangit_*.xml resources. Existing Java handlers remain unchanged; native icon UI state tint implemented.
 - Physical device taps/layout/accessibility and state regression NOT tested yet. No Core/VPS/MCP server production mutations.
 STATE: **v0.3.4 DEBUG APK + SOURCE VERIFIED / PHYSICAL UI E2E PENDING**.
+
+## 2026-11-15 — Android Agent v0.3.5 compact full-function UI preflight
+- Baseline: v0.3.4 complete icons, run 43621249490 PASS; screenshots of four tabs reviewed previously.
+- Source-only UX changes: shorter heading/card copy, smaller card chrome, responsive dual-action rows (>=360dp) with 1-column fallback, 6-line draft and 3-line reply editors, 48dp secondary and 52dp primary button targets, improved MCP keyboard and visible state panel, soft keyboard adjustResize.
+- Lịch without draft now routes to Bài viết to guide completion; no data removal.
+- Preserves existing 4 tabs/20 native vectors, all actions, SharedPreferences keys, package ID, permissions and standalone MCP protocol.
+- Static handler-count preflight: 12 handler paths preserved.
+- CI/manifest/signature and physical Android E2E remain separate verification gates. No Core/VPS/production changes.

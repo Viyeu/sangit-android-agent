@@ -54,6 +54,14 @@ assert 'show_all_plan_days' in java
 assert 'tabIcons[i].setImageTintList' in java
 assert 'applyIcon(button, actionIcon(label)' in java
 assert 'setPairingStatus(pairingState, message)' in java
+assert 'addCompactActions(inbox, facebookNotices, messenger)' in java
+assert 'addCompactActions(post, save, selectImage)' in java
+assert 'screenWidthDp < 360' in java
+assert 'SOFT_INPUT_ADJUST_RESIZE' in java
+assert 'activateTab(1, true)' in java
+assert 'postEditor = editor(TemplateCatalog.textFor(restoredTemplate), 6)' in java
+assert 'startActivity(Intent.createChooser' in java
+
 icons = sorted((root / 'app/src/main/res/drawable').glob('ic_sangit_*.xml'))
 assert len(icons) == 20, f'Expected 20 vector icons, got {len(icons)}'
 for icon in icons:
@@ -61,7 +69,7 @@ for icon in icons:
     assert vector.tag.endswith('vector')
     assert any(x.tag.endswith('path') and x.attrib.get(ns + 'pathData') for x in vector.iter()), icon
 
-assert "versionName '0.3.4'" in (root / 'app/build.gradle').read_text()
+assert "versionName '0.3.5'" in (root / 'app/build.gradle').read_text()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()

@@ -27,3 +27,9 @@ Final report must distinguish source-complete from APK/device-complete.
 - `README.md` usage + build.
 - `scripts/test-offline.sh` Java business tests + syntax/parser + static safeguards.
 - `.github/workflows/android-ci.yml` debug build template; no release secrets.
+
+## Current v0.3.x standalone Android Agent scope (2026-11-15)
+- This addendum supersedes the legacy v0.2 "no INTERNET" and Core pairing references above.
+- Android Agent v0.3.x permits INTERNET **only** for user-triggered HTTPS connection to its independent MCP server. Never reuse SangIT Core auth, OAuth, DB or provider routes.
+- No notification listener or Accessibility service. Keep all user-controlled Facebook, drafts, calendar, checklist and MCP functions backward-compatible.
+- UI changes must be scoped to Android source; maintain native vector icons and avoid extra dependencies. Preserve SharedPreferences keys and applicationId.

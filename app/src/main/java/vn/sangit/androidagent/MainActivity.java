@@ -23,6 +23,7 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -107,6 +108,7 @@ public final class MainActivity extends Activity {
         }
         getWindow().setStatusBarColor(BACKGROUND);
         getWindow().setNavigationBarColor(BACKGROUND);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         render();
     }
@@ -149,20 +151,20 @@ public final class MainActivity extends Activity {
         scroll.setVerticalScrollBarEnabled(false);
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(16), dp(16), dp(16), dp(24));
+        body.setPadding(dp(14), dp(10), dp(14), dp(20));
         scroll.addView(body);
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
         setContentView(root);
 
-        TextView eyebrow = text("SANGIT  /  ANDROID AGENT 0.3.4", 11, PRIMARY, true);
-        eyebrow.setLetterSpacing(0.08f);
+        TextView eyebrow = text("SANGIT  /  ANDROID AGENT 0.3.5", 10, PRIMARY, true);
+        eyebrow.setLetterSpacing(0.06f);
         body.addView(eyebrow);
-        pageHeader = text("Tổng quan", 27, INK, true);
-        pageHeader.setPadding(0, dp(8), 0, dp(4));
+        pageHeader = text("Tổng quan", 24, INK, true);
+        pageHeader.setPadding(0, dp(4), 0, dp(2));
         body.addView(pageHeader);
-        pageSubtitle = text("Công cụ chăm sóc Facebook cá nhân", 13, MUTED, false);
+        pageSubtitle = text("Công cụ Facebook cá nhân", 12, MUTED, false);
         body.addView(pageSubtitle);
-        body.addView(space(17));
+        body.addView(space(11));
 
         for (int i = 0; i < tabPages.length; i++) {
             LinearLayout page = new LinearLayout(this);
@@ -177,7 +179,7 @@ public final class MainActivity extends Activity {
 
         LinearLayout navigation = new LinearLayout(this);
         navigation.setOrientation(LinearLayout.HORIZONTAL);
-        navigation.setPadding(dp(8), dp(7), dp(8), dp(8));
+        navigation.setPadding(dp(6), dp(5), dp(6), dp(5));
         navigation.setBackgroundColor(Color.WHITE);
         navigation.setElevation(dp(8));
         String[] names = {"Tổng quan", "Bài viết", "Lịch", "MCP"};
@@ -194,28 +196,28 @@ public final class MainActivity extends Activity {
             ImageView picture = new ImageView(this);
             picture.setImageResource(icons[i]);
             picture.setImageTintList(ColorStateList.valueOf(MUTED));
-            tab.addView(picture, new LinearLayout.LayoutParams(dp(22), dp(22)));
-            TextView label = text(names[i], 12, MUTED, false);
+            tab.addView(picture, new LinearLayout.LayoutParams(dp(21), dp(21)));
+            TextView label = text(names[i], 11, MUTED, false);
             label.setGravity(Gravity.CENTER);
-            label.setPadding(0, dp(4), 0, 0);
+            label.setPadding(0, dp(3), 0, 0);
             tab.addView(label);
             tab.setOnClickListener(v -> activateTab(index, true));
-            navigation.addView(tab, new LinearLayout.LayoutParams(0, dp(64), 1f));
+            navigation.addView(tab, new LinearLayout.LayoutParams(0, dp(58), 1f));
             tabLabels[i] = label;
             tabIcons[i] = picture;
             tabSurfaces[i] = tab;
         }
         root.addView(navigation, new LinearLayout.LayoutParams(-1, -2));
 
-        LinearLayout statusCard = card(homePage, "Riêng tư và chủ động");
-        statusCard.addView(text("Không tự đăng bài hoặc đọc tin nhắn. Chỉ gửi trạng thái khi bạn chủ động xác nhận.", 13, MUTED, false));
-        statusCard.addView(space(9));
+        LinearLayout statusCard = card(homePage, "Facebook cá nhân");
+        statusCard.addView(text("Không tự đăng bài, không đọc tin nhắn. Mọi chia sẻ đều do bạn xác nhận.", 12, MUTED, false));
+        statusCard.addView(space(3));
         Button profileBtn = button("Mở hồ sơ Facebook", false);
         profileBtn.setOnClickListener(v -> openUrl(PROFILE));
         statusCard.addView(profileBtn);
 
-        LinearLayout dashboard = card(homePage, "Thống kê tự nhập");
-        dashboard.addView(text("Nhập ba chỉ số từ Facebook. Ứng dụng không tự thu thập dữ liệu.", 13, MUTED, false));
+        LinearLayout dashboard = card(homePage, "Chỉ số Facebook");
+        dashboard.addView(text("Nhập từ Facebook; Agent không tự thu thập dữ liệu.", 12, MUTED, false));
         metricsSummary = text("Chưa nhập số liệu", 14, INK, true);
         dashboard.addView(metricsSummary);
         updateMetricsSummary();
@@ -244,23 +246,24 @@ public final class MainActivity extends Activity {
         dashboard.addView(saveMetrics);
 
         LinearLayout inbox = card(homePage, "Lối tắt Facebook");
-        inbox.addView(text("Không xin quyền đọc thông báo hay tin nhắn. Bạn tự mở ứng dụng để xử lý.", 13, MUTED, false));
-        Button facebookNotices = button("Mở thông báo Facebook", false);
+        inbox.addView(text("Mở ứng dụng chính thức để xem và trả lời.", 12, MUTED, false));
+        Button facebookNotices = button("Mở thông báo", false);
         facebookNotices.setOnClickListener(v -> openUrl("https://www.facebook.com/notifications/"));
-        inbox.addView(facebookNotices);
-        Button messenger = button("Mở tin nhắn Messenger", false);
+
+        Button messenger = button("Mở tin nhắn", false);
         messenger.setOnClickListener(v -> openUrl("https://www.messenger.com/"));
-        inbox.addView(messenger);
+        addCompactActions(inbox, facebookNotices, messenger);
 
         LinearLayout post = card(writingPage, "Soạn và chia sẻ bài viết");
-        post.addView(text("Chọn mẫu, sửa nội dung theo ca thực tế; bạn tự xác nhận trong Facebook.", 13, MUTED, false));
+        post.addView(text("Chọn mẫu, chỉnh sửa và tự xác nhận khi đăng.", 12, MUTED, false));
         post.addView(space(8));
         Spinner templates = new Spinner(this);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, TemplateCatalog.titles());
         templates.setAdapter(adapter);
+        templates.setMinimumHeight(dp(48));
         templates.setSelection(restoredTemplate);
         post.addView(templates);
-        postEditor = editor(TemplateCatalog.textFor(restoredTemplate), 9);
+        postEditor = editor(TemplateCatalog.textFor(restoredTemplate), 6);
         String saved = restoredPost != null ? restoredPost : store.draft();
         if (!saved.isEmpty()) postEditor.setText(saved);
         post.addView(postEditor);
@@ -273,15 +276,15 @@ public final class MainActivity extends Activity {
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
-        Button save = button("Lưu bản nháp", false);
+        Button save = button("Lưu nháp", false);
         save.setOnClickListener(v -> {
             store.saveDraft(postEditor.getText().toString());
             Toast.makeText(this, "Đã lưu nháp trên thiết bị", Toast.LENGTH_SHORT).show();
         });
-        post.addView(save);
-        Button selectImage = button("Chọn ảnh từ thư viện", false);
+
+        Button selectImage = button("Chọn ảnh", false);
         selectImage.setOnClickListener(v -> selectImage());
-        post.addView(selectImage);
+        addCompactActions(post, save, selectImage);
         imageSummary = text(selectedImage == null ? "Chưa chọn ảnh" : "Đã chọn ảnh · chỉ dùng trong phiên hiện tại", 12, MUTED, false);
         post.addView(imageSummary);
         Button share = button("Chia sẻ qua Facebook / ứng dụng", true);
@@ -290,20 +293,19 @@ public final class MainActivity extends Activity {
         Button copy = button("Sao chép bài viết", false);
         copy.setOnClickListener(v -> copyToClipboard(postEditor.getText().toString()));
         post.addView(copy);
-        post.addView(text("Lưu ý: Một số phiên bản Facebook không nhận nội dung chữ khi chia sẻ kèm ảnh. Có thể dùng Sao chép rồi dán vào bài trước khi đăng.", 12, MUTED, false));
+        post.addView(text("Nếu Facebook không nhận chữ kèm ảnh, hãy sao chép và dán thủ công.", 12, MUTED, false));
 
         LinearLayout reply = card(writingPage, "Gợi ý phản hồi");
-        reply.addView(text("Chọn loại tình huống, Agent tạo câu trả lời theo mẫu an toàn. "
-            + "Đây là quy tắc cục bộ, KHÔNG phải AI sinh văn bản hay đọc tin nhắn Facebook.", 12, MUTED, false));
+        reply.addView(text("Gợi ý theo mẫu offline; không tự đọc tin nhắn.", 12, MUTED, false));
         Spinner category = new Spinner(this);
         category.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, ReplyAssistant.categories()));
         reply.addView(category);
         Button suggestReply = button("Gợi ý phản hồi", false);
         reply.addView(suggestReply);
-        replyEditor = editor(restoredReply != null ? restoredReply : store.reply(), 4);
+        replyEditor = editor(restoredReply != null ? restoredReply : store.reply(), 3);
         reply.addView(replyEditor);
         suggestReply.setOnClickListener(v -> replyEditor.setText(ReplyAssistant.suggest(category.getSelectedItemPosition())));
-        Button askAi = button("Nhờ ChatGPT chỉnh phản hồi (tùy chọn)", false);
+        Button askAi = button("Nhờ ChatGPT chỉnh", false);
         askAi.setOnClickListener(v -> {
             String text = replyEditor.getText().toString().trim();
             if (text.isEmpty()) { Toast.makeText(this, "Chọn gợi ý hoặc nhập nháp trước", Toast.LENGTH_SHORT).show(); return; }
@@ -317,8 +319,7 @@ public final class MainActivity extends Activity {
             catch (Exception error) { Toast.makeText(this, "Không mở được ứng dụng chia sẻ", Toast.LENGTH_SHORT).show(); }
         });
         reply.addView(askAi);
-        reply.addView(text("Không nhập mật khẩu, số điện thoại, địa chỉ hay nội dung riêng tư của khách vào AI. "
-            + "Bạn chọn ứng dụng và kiểm tra trước khi chia sẻ.", 12, MUTED, false));
+        reply.addView(text("Không đưa thông tin riêng tư của khách vào AI.", 12, MUTED, false));
         Button copyReply = button("Sao chép phản hồi và mở Facebook", true);
         copyReply.setOnClickListener(v -> {
             String value = replyEditor.getText().toString();
@@ -328,10 +329,10 @@ public final class MainActivity extends Activity {
             openUrl(FACEBOOK_APP);
         });
         reply.addView(copyReply);
-        reply.addView(text("Không dán thông tin riêng tư của khách hàng vào phản hồi công khai.", 12, MUTED, false));
+
 
         LinearLayout planner = card(schedulePage, "Lịch nội dung 7 ngày");
-        planner.addView(text("Gợi ý bài và Reel; bạn tự duyệt và đăng.", 13, MUTED, false));
+        planner.addView(text("7 ngày gợi ý, tự duyệt trước khi đăng.", 12, MUTED, false));
         planIdeas = new LinearLayout(this);
         planIdeas.setOrientation(LinearLayout.VERTICAL);
         planner.addView(planIdeas);
@@ -352,16 +353,16 @@ public final class MainActivity extends Activity {
         reminderSummary = text("", 14, INK, true);
         planner.addView(reminderSummary);
         updateReminderSummary();
-        Button chooseDate = button("Chọn ngày và giờ nhắc", false);
+        Button chooseDate = button("Chọn ngày / giờ", false);
         chooseDate.setOnClickListener(v -> pickReminderDateTime());
         planner.addView(chooseDate);
-        Button addCalendar = button("Chuẩn bị lời nhắc trong Lịch", true);
+        Button addCalendar = button("Tạo lời nhắc trong Lịch", true);
         addCalendar.setOnClickListener(v -> addCalendarReminder());
         planner.addView(addCalendar);
-        Button clearReminder = button("Xóa nhắc đăng đã lưu trong Agent", false);
+        Button clearReminder = button("Xóa nhắc đã lưu", false);
         clearReminder.setOnClickListener(v -> { store.clearReminder(); updateReminderSummary(); });
         planner.addView(clearReminder);
-        planner.addView(text("Lưu trong Agent không tự tạo chuông báo. Bạn phải bấm Lưu/Xác nhận trong ứng dụng Lịch.", 12, MUTED, false));
+        planner.addView(text("Nhớ bấm Lưu trong ứng dụng Lịch để bật nhắc.", 12, MUTED, false));
 
         LinearLayout schedule = card(schedulePage, "Việc hôm nay");
         dayChecklistDate = text("", 13, MUTED, false);
@@ -372,15 +373,17 @@ public final class MainActivity extends Activity {
         refreshDailyContent();
 
         LinearLayout mcpPanel = card(connectPage, "Kết nối ChatGPT · MCP độc lập");
-        mcpPanel.addView(text("Nhập URL HTTPS và mã ghép cặp khi máy chủ MCP riêng đã hoạt động.", 13, MUTED, false));
+        mcpPanel.addView(text("Kết nối máy chủ riêng bằng HTTPS và mã dùng một lần.", 12, MUTED, false));
         EditText endpoint = editor("", 1);
         endpoint.setSingleLine(true);
+        endpoint.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         endpoint.setHint("Địa chỉ HTTPS máy chủ MCP");
         endpoint.setContentDescription("Địa chỉ máy chủ MCP HTTPS độc lập");
         applyIcon(endpoint, R.drawable.ic_sangit_link, MUTED, 20);
         mcpPanel.addView(endpoint);
         EditText pairingCode = editor("", 1);
         pairingCode.setSingleLine(true);
+        pairingCode.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         pairingCode.setHint("Mã ghép cặp dùng một lần");
         pairingCode.setContentDescription("Mã ghép cặp một lần");
         applyIcon(pairingCode, R.drawable.ic_sangit_key, MUTED, 20);
@@ -406,9 +409,9 @@ public final class MainActivity extends Activity {
         disconnectButton.setOnClickListener(v -> mcpClient.disconnect(
             message -> runOnUiThread(() -> setPairingStatus(pairingState, message))));
         mcpPanel.addView(disconnectButton);
-        mcpPanel.addView(text("Kết nối trực tiếp ChatGPT qua máy chủ MCP độc lập có HTTPS và xác thực. Phiên ghép cặp chỉ giữ trong bộ nhớ; đóng ứng dụng cần ghép cặp lại.", 12, MUTED, false));
+        mcpPanel.addView(text("Phiên chỉ lưu tạm. Mở lại ứng dụng cần ghép cặp mới.", 12, MUTED, false));
 
-        TextView footer = text("SangIT Android Agent · v0.3.4 beta\nChỉ chia sẻ khi bạn xác nhận", 12, MUTED, false);
+        TextView footer = text("SangIT Android Agent · v0.3.5 beta", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER_HORIZONTAL);
         footer.setPadding(0, dp(10), 0, 0);
         connectPage.addView(footer);
@@ -477,19 +480,20 @@ public final class MainActivity extends Activity {
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1f);
-        lp.setMargins(0, dp(8), dp(6), dp(6));
+        lp.setMargins(0, dp(6), dp(5), dp(5));
         container.addView(col, lp);
         TextView fieldLabel = text(label, 12, MUTED, false);
         applyIcon(fieldLabel, "Theo dõi".equals(label) ? R.drawable.ic_sangit_person
             : "Lượt xem".equals(label) ? R.drawable.ic_sangit_chart
-            : R.drawable.ic_sangit_message, PRIMARY, 16);
+            : R.drawable.ic_sangit_message, PRIMARY, 14);
         col.addView(fieldLabel);
         EditText field = new EditText(this);
         field.setSingleLine(true);
         field.setInputType(InputType.TYPE_CLASS_NUMBER);
         field.setTextColor(INK);
         field.setTextSize(16f);
-        field.setPadding(dp(8), dp(10), dp(8), dp(10));
+        field.setPadding(dp(7), dp(9), dp(7), dp(9));
+        field.setMinHeight(dp(48));
         field.setBackground(rounded(BACKGROUND, 10, BORDER));
         field.setText(value);
         col.addView(field);
@@ -536,7 +540,8 @@ public final class MainActivity extends Activity {
     private void addCalendarReminder() {
         String content = postEditor.getText().toString().trim();
         if (content.isEmpty()) {
-            Toast.makeText(this, "Hãy soạn nội dung trước khi thêm lịch", Toast.LENGTH_LONG).show();
+            activateTab(1, true);
+            Toast.makeText(this, "Hãy soạn bài trước khi thêm lịch", Toast.LENGTH_LONG).show();
             return;
         }
         long when = chosenReminder.toInstant().toEpochMilli();
@@ -626,14 +631,14 @@ public final class MainActivity extends Activity {
     private LinearLayout card(LinearLayout parent, String heading) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(16), dp(15), dp(16), dp(16));
+        card.setPadding(dp(14), dp(13), dp(14), dp(14));
         card.setBackground(rounded(Color.WHITE, 20, BORDER));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.bottomMargin = dp(12);
+        params.bottomMargin = dp(10);
         parent.addView(card, params);
-        TextView title = text(heading, 18, INK, true);
+        TextView title = text(heading, 17, INK, true);
         applyIcon(title, sectionIcon(heading), PRIMARY, 19);
-        title.setPadding(0, 0, 0, dp(9));
+        title.setPadding(0, 0, 0, dp(7));
         card.addView(title);
         return card;
     }
@@ -658,22 +663,43 @@ public final class MainActivity extends Activity {
         return input;
     }
 
+
+    /** Two compact actions on normal phones, stacked on narrow devices. */
+    private void addCompactActions(LinearLayout parent, Button left, Button right) {
+        if (getResources().getConfiguration().screenWidthDp < 360) {
+            parent.addView(left);
+            parent.addView(right);
+            return;
+        }
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
+        rowParams.topMargin = dp(3);
+        parent.addView(row, rowParams);
+        LinearLayout.LayoutParams leftParams = new LinearLayout.LayoutParams(0, -2, 1f);
+        leftParams.rightMargin = dp(5);
+        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(0, -2, 1f);
+        rightParams.leftMargin = dp(5);
+        row.addView(left, leftParams);
+        row.addView(right, rightParams);
+    }
+
     private Button button(String label, boolean primary) {
         Button button = new Button(this);
         button.setAllCaps(false);
         button.setText(label);
-        button.setTextSize(15f);
+        button.setTextSize(14f);
         button.setTypeface(null, Typeface.BOLD);
         button.setTextColor(primary ? Color.WHITE : INK);
-        button.setMinHeight(dp(52));
-        button.setPadding(dp(13), dp(10), dp(13), dp(10));
+        button.setMinHeight(dp(primary ? 52 : 48));
+        button.setPadding(dp(10), dp(8), dp(10), dp(8));
         applyIcon(button, actionIcon(label), primary ? Color.WHITE : PRIMARY, 19);
         button.setGravity(Gravity.CENTER);
         button.setBackground(new RippleDrawable(ColorStateList.valueOf(
             primary ? 0x44FFFFFF : 0x22007074),
             rounded(primary ? PRIMARY : BACKGROUND, 14, primary ? PRIMARY : BORDER), null));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.topMargin = dp(7);
+        params.topMargin = dp(6);
         button.setLayoutParams(params);
         return button;
     }
@@ -726,6 +752,8 @@ public final class MainActivity extends Activity {
         boolean failure = info.contains("thất bại") || info.startsWith("không ") || info.contains("lỗi");
         int tint = success ? PRIMARY : failure ? Color.rgb(173, 83, 37) : MUTED;
         view.setTextColor(tint);
+        view.setPadding(dp(12), dp(11), dp(12), dp(11));
+        view.setBackground(rounded(success ? SOFT : failure ? 0xFFFDF1EB : BACKGROUND, 12, BORDER));
         applyIcon(view, success ? R.drawable.ic_sangit_check :
             failure ? R.drawable.ic_sangit_unlink : R.drawable.ic_sangit_link, tint, 19);
     }
