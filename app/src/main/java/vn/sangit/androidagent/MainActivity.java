@@ -5,7 +5,6 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
 import android.graphics.Color;
@@ -15,7 +14,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.provider.CalendarContract;
 import android.text.InputType;
 import android.view.Gravity;
@@ -28,7 +26,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView;
@@ -52,7 +49,6 @@ public final class MainActivity extends Activity {
 
     private LocalStore store;
     private final McpDeviceClient mcpClient = new McpDeviceClient();
-    private TextView notificationSummary;
     private TextView metricsSummary;
     private TextView reminderSummary;
     private EditText followerInput;
@@ -108,7 +104,6 @@ public final class MainActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
-        if (notificationSummary != null) updateNotificationSummary();
         if (metricsSummary != null) updateMetricsSummary();
     }
 
@@ -180,34 +175,13 @@ public final class MainActivity extends Activity {
         });
         dashboard.addView(saveMetrics);
 
-        LinearLayout notice = card(body, "2 · Thông báo được cho phép");
-        notificationSummary = text("Đang kiểm tra quyền...", 14, INK, false);
-        notice.addView(notificationSummary);
-        notice.addView(space(8));
-        Switch enable = new Switch(this);
-        enable.setText("Bật thống kê thông báo cục bộ");
-        enable.setTextColor(INK);
-        enable.setTextSize(14f);
-        enable.setChecked(store.notificationsEnabled());
-        notice.addView(enable);
-        enable.setOnCheckedChangeListener((unused, checked) -> {
-            store.setNotificationsEnabled(checked);
-            updateNotificationSummary();
-            if (checked && !isNotificationAccessGranted()) {
-                Toast.makeText(this, "Cần cấp quyền trong Cài đặt Android", Toast.LENGTH_LONG).show();
-            }
-        });
-        Button permission = button("Mở cài đặt quyền thông báo", false);
-        permission.setOnClickListener(v -> {
-            try { startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)); }
-            catch (Exception error) { Toast.makeText(this, "Không mở được phần cài đặt", Toast.LENGTH_SHORT).show(); }
-        });
-        notice.addView(permission);
-        notice.addView(text("Chỉ đếm thông báo Facebook/Messenger đang hiển thị. Android cấp quyền này cho toàn bộ thông báo; Agent không đọc/lưu nội dung hoặc danh tính người gửi. Có thể tắt bất cứ lúc nào.", 12, MUTED, false));
+        LinearLayout notice = card(body, "2 · Thông báo Facebook / Messenger");
+        notice.addView(text("Bản này không xin quyền đọc thông báo Android. "
+            + "Bạn có thể mở Facebook hoặc Messenger để kiểm tra thủ công.", 13, MUTED, false));
 
         LinearLayout inbox = card(body, "3 · Hộp việc cần xử lý");
-        inbox.addView(text("Thông báo hiện có được hiển thị ở mục trên. Bấm để tự xem nội dung ngay trong Facebook/Messenger; "
-            + "Agent không lưu hoặc phân loại nội dung người gửi.", 12, MUTED, false));
+        inbox.addView(text("Bấm để tự xem thông báo hoặc tin nhắn trong ứng dụng chính thức. "
+            + "Agent không đọc hoặc lưu nội dung người gửi.", 12, MUTED, false));
         Button facebookNotices = button("Mở thông báo Facebook", false);
         facebookNotices.setOnClickListener(v -> openUrl("https://www.facebook.com/notifications/"));
         inbox.addView(facebookNotices);
@@ -462,23 +436,6 @@ public final class MainActivity extends Activity {
         check.setChecked(store.taskDone(id, date));
         check.setOnCheckedChangeListener((button, value) -> store.setTaskDone(id, date, value));
         container.addView(check);
-    }
-
-    private void updateNotificationSummary() {
-        if (!store.notificationsEnabled()) {
-            notificationSummary.setText("Đang tắt. Không thống kê thông báo.");
-        } else if (!isNotificationAccessGranted()) {
-            notificationSummary.setText("Đã bật trong Agent, chưa cấp quyền Android.");
-        } else {
-            notificationSummary.setText("Đang hiển thị: Facebook " + store.facebookCount()
-                + " · Messenger " + store.messengerCount() + "\n"
-                + "Chỉ là số thông báo còn hiển thị trên máy; không phải số bình luận hay tin nhắn mới.");
-        }
-    }
-
-    private boolean isNotificationAccessGranted() {
-        String value = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
-        return value != null && value.contains(new ComponentName(this, FacebookNotificationListener.class).flattenToString());
     }
 
     private void selectImage() {

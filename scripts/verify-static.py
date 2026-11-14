@@ -13,16 +13,15 @@ app = manifest.find('application')
 assert app is not None and app.get(ns+'allowBackup') == 'false'
 assert app.get(ns+'usesCleartextTraffic') == 'false'
 activity = app.find('activity')
-service = app.find('service')
+assert not app.findall('service'), 'Play Protect safe variant must not register services'
 assert activity is not None and activity.get(ns+'exported') == 'true'
-assert service is not None and service.get(ns+'exported') == 'false'
-assert service.get(ns+'permission') == 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE'
 java = (root / 'app/src/main/java/vn/sangit/androidagent/MainActivity.java').read_text()
 listener = (root / 'app/src/main/java/vn/sangit/androidagent/FacebookNotificationListener.java').read_text()
 assert 'Intent.createChooser' in java
 assert 'ACTION_GET_CONTENT' in java
 assert 'Intent.ACTION_SEND' in java
-assert 'ACTION_NOTIFICATION_LISTENER_SETTINGS' in java
+assert 'ACTION_NOTIFICATION_LISTENER_SETTINGS' not in java
+assert 'enabled_notification_listeners' not in java
 assert 'com.facebook.katana' not in listener  # relies on single allowlist definition
 assert 'EXTRA_TEXT' not in listener
 assert 'EXTRA_TITLE' not in listener
@@ -46,7 +45,7 @@ assert 'store.saveReminder' in java
 assert 'ContentSchedule.ideaFor' in java
 assert 'Không đăng tự động' in java
 assert 'MCP độc lập' in java and 'mcpClient.pair' in java
-assert "versionName '0.3.0'" in (root / 'app/build.gradle').read_text()
+assert "versionName '0.3.1'" in (root / 'app/build.gradle').read_text()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()

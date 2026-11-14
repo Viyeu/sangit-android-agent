@@ -1,3 +1,7 @@
+# SangIT Android Agent v0.3.1 (Play Protect minimal permissions)
+
+This variant removes the notification listener from the Android manifest and user interface after the Play Protect block reported on Android 16. It retains explicit, outbound HTTPS pairing to an independent MCP server, and manual Facebook/Messenger shortcuts. Sensitive notification access cannot be granted. This is a debug APK; installation on the physical device is pending. Do not disable Play Protect.
+
 # SangIT Android Agent v0.2.0 — Chăm sóc Facebook cá nhân
 
 **Trạng thái:** mã nguồn, chưa phải APK và chưa được kiểm thử Android 16. Phát triển từ bản v0.1, giữ applicationId `vn.sangit.androidagent` (phiên bản 2), giữ tương thích dữ liệu SharedPreferences v0.1.

@@ -34,3 +34,9 @@ STATE: **v0.2 SOURCE IMPLEMENTED / OFFLINE TEST PASS; APK AND ANDROID16 E2E BLOC
 - No Core, VPS, WordPress, Panel or production state changed by this task.
 
 CURRENT STATE: **DEBUG APK BUILT AND VERIFIED / DEVICE E2E PENDING / PRODUCTION RELEASE NOT AUTHORIZED**.
+
+## 2026-11-14 — Play Protect report and minimal-permission v0.3.1
+- User provided physical Android 16 screenshot: Internet-downloaded v0.3 blocked by Google Play Protect for sensitive access.
+- Confirmed BIND_NOTIFICATION_LISTENER_SERVICE in v0.3 manifest. Google Play Protect guidance explicitly identifies NOTIFICATION_LISTENER as a sideloading high-risk permission.
+- Built separate v0.3.1 minimal-permission candidate: remove listener registration and notification-access UI, preserve manual Facebook/Messenger and standalone MCP pairing; keep same applicationId and migrate no user data.
+- Offline source test 49 Java assertions + Java parser + standalone MCP tests PASS locally; CI APK and device test pending at commit time. Do not disable Play Protect. No SangIT Core/VPS/prod changes.
