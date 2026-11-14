@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parents[1]
 manifest = ET.parse(root / 'app/src/main/AndroidManifest.xml').getroot()
 ns = '{http://schemas.android.com/apk/res/android}'
 permissions = [x.get(ns + 'name') for x in manifest.findall('uses-permission')]
-assert not permissions, f'Unexpected Android runtime permissions: {permissions}'
+assert permissions == ['android.permission.INTERNET'], f'Unexpected Android permissions: {permissions}'
 app = manifest.find('application')
 assert app is not None and app.get(ns+'allowBackup') == 'false'
 assert app.get(ns+'usesCleartextTraffic') == 'false'
@@ -30,7 +30,7 @@ assert 'getActiveNotifications' in listener
 assert 'notification.getNotification().flags' in listener
 assert 'onSaveInstanceState' in java
 assert 'savedInstanceState' in java
-assert 'INTERNET' not in [x.get(ns + 'name', '') for x in manifest.findall('uses-permission')]
+assert 'android.permission.INTERNET' in permissions
 assert 'android.permission.READ_CALENDAR' not in permissions
 assert 'android.permission.WRITE_CALENDAR' not in permissions
 assert 'AccessibilityService' not in java
@@ -45,8 +45,8 @@ assert 'Intent.createChooser' in java
 assert 'store.saveReminder' in java
 assert 'ContentSchedule.ideaFor' in java
 assert 'Không đăng tự động' in java
-assert 'không có quyền INTERNET' in java
-assert "versionName '0.2.0'" in (root / 'app/build.gradle').read_text()
+assert 'MCP độc lập' in java and 'mcpClient.pair' in java
+assert "versionName '0.3.0'" in (root / 'app/build.gradle').read_text()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()
