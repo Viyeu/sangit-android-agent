@@ -86,3 +86,12 @@ STATE: **UI v0.3.3 DEBUG APK BUILD VERIFIED / DEVICE INTERACTION E2E PENDING**.
 - Adds 20 internal VectorDrawable icons to the 4 bottom tabs, card headers, buttons, metric labels, MCP inputs and status messages. No network dependency or new permissions.
 - Selected tab icon tint matches active state, 64dp navigation remains accessible; previous UI event handlers and independent MCP remain unchanged.
 - CI build and device-interaction E2E checked separately. No Core/VPS/production changes.
+
+## 2026-11-15 — v0.3.4 full icon APK verified
+- GitHub Actions https://github.com/Viyeu/sangit-android-agent/actions/runs/43621249490: SUCCESS at e5571921054d2d1c5e4c32560af7e0e6386b924c.
+- Offline Java 49/49, Java syntax 10/10, static privacy and 20-vector-XML guards PASS.
+- Gradle SDK35 JDK17 build PASS, apksigner verify PASS; compiled AndroidManifest contains no notification listener. ZIP CRC PASS.
+- Extracted APK SHA-256: 9f8c2f6b84e9ef183b522bd5a16fddb80e64e005a6358b3d270cef31006e6f66, size 51731 bytes, package vn.sangit.androidagent v0.3.4/code7.
+- Binary APK ZIP readback confirms 20 bundled res/drawable/ic_sangit_*.xml resources. Existing Java handlers remain unchanged; native icon UI state tint implemented.
+- Physical device taps/layout/accessibility and state regression NOT tested yet. No Core/VPS/MCP server production mutations.
+STATE: **v0.3.4 DEBUG APK + SOURCE VERIFIED / PHYSICAL UI E2E PENDING**.
