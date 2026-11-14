@@ -20,3 +20,17 @@
 4. Separate scoped approval and contract for future Core device pairing (not implemented).
 
 STATE: **v0.2 SOURCE IMPLEMENTED / OFFLINE TEST PASS; APK AND ANDROID16 E2E BLOCKED BY SDK/DEVICE**.
+
+## 2026-11-14 — Verified GitHub Actions debug APK build
+- User approved publishing Android Agent v0.2 source to public GitHub repo Viyeu/sangit-android-agent.
+- Archived source was reassembled with SHA-256 `0e327a23e1e02cb3e1710f64ee346fb329f086b1ee50b676c0679e4b5d197545`, verified and committed as browseable source files.
+- Source compile error: Java local variable `share` duplicated inside `MainActivity.render()` lambda. Scoped rename to `aiShare` only; original share behavior retained.
+- CI run https://github.com/Viyeu/sangit-android-agent/actions/runs/43605169862: **SUCCESS**.
+- Toolchain: GitHub Ubuntu runner, JDK 17, Android SDK 35, build-tools 35.0.0, Gradle 8.9.
+- Offline Java regression 49/49 PASS, Java syntax 9/9 PASS, static privacy guards PASS, `gradle --no-daemon --stacktrace :app:assembleDebug` PASS, `aapt dump badging` PASS, `apksigner verify` PASS.
+- Debug APK SHA-256: `0d34203f9191ca8705a8e331f184186a335a98ea5d279cbe46f891299df2007a`; size 31,436 bytes; package `vn.sangit.androidagent`; version 0.2.0 (code 2).
+- Artifact: `sangit-android-agent-v0.2-debug` on run 43605169862 (GitHub retention until 2026-11-28). Artifact downloaded independently; ZIP CRC and extracted APK SHA-256 verified.
+- Android 16 physical-device UI/permission/Facebook share/calendar E2E: **NOT RUN** (no connected device). Production release signing and deployment: **NOT RUN**.
+- No Core, VPS, WordPress, Panel or production state changed by this task.
+
+CURRENT STATE: **DEBUG APK BUILT AND VERIFIED / DEVICE E2E PENDING / PRODUCTION RELEASE NOT AUTHORIZED**.
