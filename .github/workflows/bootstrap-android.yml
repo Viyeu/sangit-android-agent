@@ -1,43 +1,27 @@
-name: Android Agent v0.2 Bootstrap and Debug APK
+name: SangIT Android Agent v0.2 Debug APK
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'source-archive/**'
       - 'app/**'
       - '*.gradle'
       - 'settings.gradle'
       - 'gradle.properties'
+      - 'scripts/**'
       - '.github/workflows/bootstrap-android.yml'
-  workflow_dispatch:
 
 permissions:
   contents: write
-
-concurrency:
-  group: android-agent-v0.2-bootstrap
-  cancel-in-progress: false
 
 jobs:
   build-debug:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - name: Checkout source archive
+      - name: Checkout verified source
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-
-      - name: Verify archive SHA256 and extract source
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat source-archive/part-*.b64 | base64 --decode > /tmp/sangit-agent-v0.2.tar.xz
-          echo "0e327a23e1e02cb3e1710f64ee346fb329f086b1ee50b676c0679e4b5d197545  /tmp/sangit-agent-v0.2.tar.xz" | sha256sum -c -
-          tar -xJf /tmp/sangit-agent-v0.2.tar.xz
-          test -f app/build.gradle
-          test -f scripts/test-offline.sh
 
       - name: JDK 17
         uses: actions/setup-java@v4
@@ -45,41 +29,22 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Offline Java and privacy checks
+      - name: Offline Java and static privacy regression
         run: bash scripts/test-offline.sh
 
-      - name: Publish verified, browseable source
+      - name: Find Android SDK manager (avoid obsolete tools package)
         shell: bash
         run: |
           set -euo pipefail
-          cat > .gitignore <<'EOF'
-          .gradle/
-          build/
-          app/build/
-          local.properties
-          .idea/
-          *.apk
-          *.aab
-          EOF
-          cat > .codex/CI-RUN.md <<EOF
-          # Android Agent v0.2 CI Run
-          - Workflow run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - Archive SHA-256: 0e327a23e1e02cb3e1710f64ee346fb329f086b1ee50b676c0679e4b5d197545
-          - Offline checks: PASS before Android build
-          - Android SDK build and device E2E: pending at time of this commit
-          EOF
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm -r source-archive
-          git add .gitignore .codex README.md SOURCE_MANIFEST.sha256 app build.gradle settings.gradle gradle.properties scripts
-          git commit -m "Publish verified SangIT Android Agent v0.2 source"
-          git push origin HEAD:main
-
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
+          test -d "${ANDROID_HOME}/cmdline-tools"
+          SDKMANAGER_PATH="$(find "${ANDROID_HOME}/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -x "$SDKMANAGER_PATH"
+          echo "SDKMANAGER_PATH=$SDKMANAGER_PATH" >> "$GITHUB_ENV"
+          "$SDKMANAGER_PATH" --version
+          yes | "$SDKMANAGER_PATH" --licenses >/dev/null
 
       - name: Install Android SDK 35
-        run: sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
+        run: '"$SDKMANAGER_PATH" --install "platforms;android-35" "build-tools;35.0.0"'
 
       - name: Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
@@ -89,7 +54,7 @@ jobs:
       - name: Assemble debug APK
         run: gradle --no-daemon --stacktrace :app:assembleDebug
 
-      - name: Inspect APK and create report
+      - name: Verify APK and write receipt
         shell: bash
         run: |
           set -euo pipefail
@@ -99,18 +64,19 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify "$APK"
           SHA=$(sha256sum "$APK" | awk '{print $1}')
           {
-            echo '# SangIT Android Agent v0.2 — GitHub CI Debug Build'
+            echo '# SangIT Android Agent v0.2 — Debug Build Receipt'
             echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-            echo "- Commit: ${GITHUB_SHA}"
+            echo "- GitHub SHA: ${GITHUB_SHA}"
             echo "- APK SHA-256: ${SHA}"
             echo '- Package: vn.sangit.androidagent'
-            echo '- Variant: debug (NOT production release)'
+            echo '- Version: 0.2.0 / code 2'
+            echo '- Variant: debug, not signed production release'
             echo '- Offline Java assertions: 49/49 PASS'
-            echo '- Android 16 physical-device E2E: NOT RUN'
+            echo '- Android physical-device E2E: NOT RUN'
           } > .codex/CI-BUILD-REPORT.md
           cat .codex/CI-BUILD-REPORT.md
 
-      - name: Upload debug APK and build receipt
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: sangit-android-agent-v0.2-debug
@@ -120,10 +86,12 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish build receipt
+      - name: Save CI receipt to source repository
         shell: bash
         run: |
           set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .codex/CI-BUILD-REPORT.md
-          git commit -m 'Record SangIT Android Agent v0.2 debug APK build receipt'
+          git commit -m 'Record Android Agent v0.2 debug APK build'
           git push origin HEAD:main
