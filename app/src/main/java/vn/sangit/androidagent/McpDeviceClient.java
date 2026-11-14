@@ -12,8 +12,9 @@ import java.nio.charset.StandardCharsets;
 /** Foreground-only explicit HTTPS pairing. No background jobs or private content transfer. */
 final class McpDeviceClient {
     interface Callback { void complete(String message); }
-    private String baseUrl;
-    private String deviceToken;
+    private volatile String baseUrl;
+    private volatile String deviceToken;
+    boolean isPaired() { return baseUrl != null && deviceToken != null; }
 
     private static String validOrigin(String value) {
         try {
@@ -53,7 +54,7 @@ final class McpDeviceClient {
         new Thread(() -> {
             try {
                 JSONObject b = new JSONObject();
-                b.put("appVersion", "0.3.0");
+                b.put("appVersion", "0.3.6");
                 b.put("sdk", Build.VERSION.SDK_INT);
                 JSONObject response = post(origin, "/device/checkin", token, b);
                 done.complete(response.optBoolean("accepted") ? "Đã gửi phiên bản và Android SDK (không gửi dữ liệu riêng tư)" : "Máy chủ chưa nhận trạng thái");

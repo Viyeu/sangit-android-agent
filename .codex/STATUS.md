@@ -112,3 +112,12 @@ STATE: **v0.3.4 DEBUG APK + SOURCE VERIFIED / PHYSICAL UI E2E PENDING**.
 - 12 categories of preexisting handlers checked for unchanged call counts; all callbacks, local storage keys, 4 tabs, manual share and standalone MCP preserved.
 - DEVICE E2E NOT RUN: requires Android 16 smoke of tab taps, narrow viewport, keyboard focus, share/photo/Calendar/MCP and upgrade without losing draft. No Core/VPS/Panel/WordPress/backend change.
 STATE: **v0.3.5 SOURCE + DEBUG APK CI PASS / ANDROID DEVICE E2E PENDING**.
+
+## 2026-11-15 — v0.3.6 UI/UX dashboard, segmented writing, daily progress, MCP state preflight
+- Baseline v0.3.5 CI SUCCESS run 43623143154; approved UI-only follow-up on real Android screenshots.
+- Tổng quan: stored manual snapshots shown as 3 compact values, editing toggled by user; quick actions Soạn bài/Facebook/Thông báo/Tin nhắn; privacy note preserved. Stored preference schema unchanged.
+- Bài viết: mutually exclusive Soạn bài/Phản hồi panels, mounted in memory; switch remembers user choice across Activity recreation. Draft/reply handlers untouched.
+- Lịch: existing daily checklist moved ahead of 7-day plan; progress read from the same task keys, updated on checkbox change and date rollover.
+- MCP: pair input and CTA only while unpaired, send/revoke only while paired; activity state derived from internal device token, not reply text. Busy state disables actions, errors remain visible; protocol unchanged; outbound status appVersion now matches actual 0.3.6.
+- Read-only isPaired() accessor uses volatile state for UI thread visibility; no new permissions/dependencies or backend/Core changes.
+- Handler count regression: 12 checked; unchanged. CI, artifact hash, physical Android interaction E2E must be verified separately.

@@ -61,6 +61,14 @@ assert 'SOFT_INPUT_ADJUST_RESIZE' in java
 assert 'activateTab(1, true)' in java
 assert 'postEditor = editor(TemplateCatalog.textFor(restoredTemplate), 6)' in java
 assert 'startActivity(Intent.createChooser' in java
+assert 'writingPanels[i].setVisibility' in java and 'writing_mode' in java
+assert 'setMetricsEditorVisible' in java and 'metricAmounts[0]' in java
+assert 'updateDailyProgress(date)' in java and 'dayProgress' in java
+assert 'updateMcpControls' in java and 'mcpClient.isPaired()' in java
+assert 'send.setVisibility(paired ? View.VISIBLE : View.GONE)' in java
+assert 'revoke.setVisibility(paired ? View.VISIBLE : View.GONE)' in java
+assert 'statusButton.setOnClickListener' in java and 'disconnectButton.setOnClickListener' in java
+assert 'startActivity(Intent.createChooser' in java
 
 icons = sorted((root / 'app/src/main/res/drawable').glob('ic_sangit_*.xml'))
 assert len(icons) == 20, f'Expected 20 vector icons, got {len(icons)}'
@@ -69,7 +77,7 @@ for icon in icons:
     assert vector.tag.endswith('vector')
     assert any(x.tag.endswith('path') and x.attrib.get(ns + 'pathData') for x in vector.iter()), icon
 
-assert "versionName '0.3.5'" in (root / 'app/build.gradle').read_text()
+assert "versionName '0.3.6'" in (root / 'app/build.gradle').read_text()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()

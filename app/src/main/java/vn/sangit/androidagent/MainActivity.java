@@ -65,6 +65,15 @@ public final class MainActivity extends Activity {
     private int selectedTab = 0;
     private TextView metricsSummary;
     private TextView reminderSummary;
+    private final TextView[] metricAmounts = new TextView[3];
+    private LinearLayout metricInputs;
+    private Button metricSaveButton;
+    private Button metricToggleButton;
+    private boolean metricsEditorExpanded;
+    private final LinearLayout[] writingPanels = new LinearLayout[2];
+    private final TextView[] writingModeLabels = new TextView[2];
+    private int writingMode;
+    private TextView dayProgress;
     private LinearLayout planIdeas;
     private LinearLayout dayChecklist;
     private TextView dayChecklistDate;
@@ -96,6 +105,8 @@ public final class MainActivity extends Activity {
         if (savedInstanceState != null) {
             selectedTab = Math.max(0, Math.min(3, savedInstanceState.getInt("selected_tab", 0)));
             showAllPlanDays = savedInstanceState.getBoolean("show_all_plan_days", false);
+            writingMode = Math.max(0, Math.min(1, savedInstanceState.getInt("writing_mode", 0)));
+            metricsEditorExpanded = savedInstanceState.getBoolean("metrics_editor_expanded", false);
             restoredPost = savedInstanceState.getString("draft_editor");
             restoredReply = savedInstanceState.getString("reply_editor");
             restoredTemplate = savedInstanceState.getInt("template", 0);
@@ -119,6 +130,8 @@ public final class MainActivity extends Activity {
         if (selectedImage != null) outState.putString("image_uri", selectedImage.toString());
         outState.putInt("selected_tab", selectedTab);
         outState.putBoolean("show_all_plan_days", showAllPlanDays);
+        outState.putInt("writing_mode", writingMode);
+        outState.putBoolean("metrics_editor_expanded", metricsEditorExpanded);
         outState.putInt("template", restoredTemplate);
         if (chosenReminder != null) outState.putLong("reminder_choice", chosenReminder.toInstant().toEpochMilli());
         if (followerInput != null) outState.putString("metrics_followers_input", followerInput.getText().toString());
@@ -156,7 +169,7 @@ public final class MainActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
         setContentView(root);
 
-        TextView eyebrow = text("SANGIT  /  ANDROID AGENT 0.3.5", 10, PRIMARY, true);
+        TextView eyebrow = text("SANGIT  /  ANDROID AGENT 0.3.6", 10, PRIMARY, true);
         eyebrow.setLetterSpacing(0.06f);
         body.addView(eyebrow);
         pageHeader = text("Tổng quan", 24, INK, true);
@@ -209,20 +222,35 @@ public final class MainActivity extends Activity {
         }
         root.addView(navigation, new LinearLayout.LayoutParams(-1, -2));
 
-        LinearLayout statusCard = card(homePage, "Facebook cá nhân");
-        statusCard.addView(text("Không tự đăng bài, không đọc tin nhắn. Mọi chia sẻ đều do bạn xác nhận.", 12, MUTED, false));
-        statusCard.addView(space(3));
-        Button profileBtn = button("Mở hồ sơ Facebook", false);
-        profileBtn.setOnClickListener(v -> openUrl(PROFILE));
-        statusCard.addView(profileBtn);
-
         LinearLayout dashboard = card(homePage, "Chỉ số Facebook");
-        dashboard.addView(text("Nhập từ Facebook; Agent không tự thu thập dữ liệu.", 12, MUTED, false));
-        metricsSummary = text("Chưa nhập số liệu", 14, INK, true);
+        dashboard.addView(text("Nhập thủ công từ Facebook; Agent không tự thu thập dữ liệu.", 12, MUTED, false));
+        LinearLayout metricSummaryRow = new LinearLayout(this);
+        metricSummaryRow.setOrientation(LinearLayout.HORIZONTAL);
+        metricSummaryRow.setPadding(0, dp(10), 0, dp(7));
+        dashboard.addView(metricSummaryRow);
+        String[] amountLabels = {"Theo dõi", "Lượt xem", "Tương tác"};
+        for (int i = 0; i < amountLabels.length; i++) {
+            LinearLayout cell = new LinearLayout(this);
+            cell.setOrientation(LinearLayout.VERTICAL);
+            cell.setGravity(Gravity.CENTER);
+            if (i > 0) cell.setPadding(dp(5), 0, 0, 0);
+            metricSummaryRow.addView(cell, new LinearLayout.LayoutParams(0, -2, 1f));
+            TextView amount = text("—", 22, INK, true);
+            amount.setGravity(Gravity.CENTER);
+            cell.addView(amount);
+            metricAmounts[i] = amount;
+            TextView amountLabel = text(amountLabels[i], 11, MUTED, false);
+            amountLabel.setGravity(Gravity.CENTER);
+            cell.addView(amountLabel);
+        }
+        metricsSummary = text("Chưa nhập thống kê", 12, MUTED, false);
         dashboard.addView(metricsSummary);
-        updateMetricsSummary();
+        metricToggleButton = button("Cập nhật thống kê", false);
+        metricToggleButton.setOnClickListener(v -> setMetricsEditorVisible(!metricsEditorExpanded));
+        dashboard.addView(metricToggleButton);
         LinearLayout numbers = new LinearLayout(this);
         numbers.setOrientation(LinearLayout.HORIZONTAL);
+        metricInputs = numbers;
         dashboard.addView(numbers);
         followerInput = metricField(numbers, "Theo dõi", restoredFollowers != null ? restoredFollowers :
             (store.metricsDate().isEmpty() ? "" : Integer.toString(store.followers())));
@@ -230,31 +258,68 @@ public final class MainActivity extends Activity {
             (store.metricsDate().isEmpty() ? "" : Integer.toString(store.views())));
         interactionInput = metricField(numbers, "Tương tác", restoredInteractions != null ? restoredInteractions :
             (store.metricsDate().isEmpty() ? "" : Integer.toString(store.interactions())));
-        Button saveMetrics = button("Lưu thống kê hôm nay", false);
-        saveMetrics.setOnClickListener(v -> {
+        metricSaveButton = button("Lưu thống kê hôm nay", false);
+        metricSaveButton.setOnClickListener(v -> {
             try {
                 int f = MetricsMath.parseCount(followerInput.getText().toString());
                 int views = MetricsMath.parseCount(viewInput.getText().toString());
                 int interactions = MetricsMath.parseCount(interactionInput.getText().toString());
                 store.saveMetrics(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).toString(), f, views, interactions);
                 updateMetricsSummary();
+                setMetricsEditorVisible(false);
                 Toast.makeText(this, "Đã lưu dữ liệu nhập tay", Toast.LENGTH_SHORT).show();
             } catch (IllegalArgumentException error) {
                 Toast.makeText(this, error.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
-        dashboard.addView(saveMetrics);
+        dashboard.addView(metricSaveButton);
+        setMetricsEditorVisible(metricsEditorExpanded);
+        updateMetricsSummary();
 
-        LinearLayout inbox = card(homePage, "Lối tắt Facebook");
-        inbox.addView(text("Mở ứng dụng chính thức để xem và trả lời.", 12, MUTED, false));
-        Button facebookNotices = button("Mở thông báo", false);
+        LinearLayout inbox = card(homePage, "Thao tác nhanh");
+        Button quickWrite = button("Soạn bài", false);
+        quickWrite.setOnClickListener(v -> {
+            activateTab(1, true);
+            activateWritingMode(0);
+        });
+        Button profileBtn = button("Facebook", false);
+        profileBtn.setOnClickListener(v -> openUrl(PROFILE));
+        addCompactActions(inbox, quickWrite, profileBtn);
+        Button facebookNotices = button("Thông báo", false);
         facebookNotices.setOnClickListener(v -> openUrl("https://www.facebook.com/notifications/"));
-
-        Button messenger = button("Mở tin nhắn", false);
+        Button messenger = button("Tin nhắn", false);
         messenger.setOnClickListener(v -> openUrl("https://www.messenger.com/"));
         addCompactActions(inbox, facebookNotices, messenger);
+        TextView privacyNote = text("Không tự đăng bài hoặc đọc tin nhắn. Bạn xác nhận mọi thao tác chia sẻ.", 12, MUTED, false);
+        privacyNote.setPadding(dp(10), dp(10), dp(10), dp(10));
+        privacyNote.setBackground(rounded(SOFT, 12, SOFT));
+        inbox.addView(privacyNote);
 
-        LinearLayout post = card(writingPage, "Soạn và chia sẻ bài viết");
+        LinearLayout writingSwitch = new LinearLayout(this);
+        writingSwitch.setPadding(dp(4), dp(4), dp(4), dp(4));
+        writingSwitch.setBackground(rounded(Color.WHITE, 15, BORDER));
+        LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(-1, -2);
+        switchParams.bottomMargin = dp(12);
+        writingPage.addView(writingSwitch, switchParams);
+        String[] writingNames = {"Soạn bài", "Phản hồi"};
+        for (int i = 0; i < writingNames.length; i++) {
+            final int index = i;
+            TextView mode = text(writingNames[i], 14, MUTED, true);
+            mode.setGravity(Gravity.CENTER);
+            mode.setMinHeight(dp(48));
+            mode.setClickable(true);
+            mode.setFocusable(true);
+            mode.setContentDescription("Chuyển sang " + writingNames[i]);
+            mode.setOnClickListener(v -> activateWritingMode(index));
+            writingSwitch.addView(mode, new LinearLayout.LayoutParams(0, dp(48), 1f));
+            writingModeLabels[i] = mode;
+            LinearLayout panel = new LinearLayout(this);
+            panel.setOrientation(LinearLayout.VERTICAL);
+            writingPage.addView(panel);
+            writingPanels[i] = panel;
+        }
+
+        LinearLayout post = card(writingPanels[0], "Soạn và chia sẻ bài viết");
         post.addView(text("Chọn mẫu, chỉnh sửa và tự xác nhận khi đăng.", 12, MUTED, false));
         post.addView(space(8));
         Spinner templates = new Spinner(this);
@@ -295,7 +360,7 @@ public final class MainActivity extends Activity {
         post.addView(copy);
         post.addView(text("Nếu Facebook không nhận chữ kèm ảnh, hãy sao chép và dán thủ công.", 12, MUTED, false));
 
-        LinearLayout reply = card(writingPage, "Gợi ý phản hồi");
+        LinearLayout reply = card(writingPanels[1], "Gợi ý phản hồi");
         reply.addView(text("Gợi ý theo mẫu offline; không tự đọc tin nhắn.", 12, MUTED, false));
         Spinner category = new Spinner(this);
         category.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, ReplyAssistant.categories()));
@@ -331,6 +396,17 @@ public final class MainActivity extends Activity {
         reply.addView(copyReply);
 
 
+        activateWritingMode(writingMode);
+        LinearLayout schedule = card(schedulePage, "Việc hôm nay");
+        dayChecklistDate = text("", 13, MUTED, false);
+        schedule.addView(dayChecklistDate);
+        dayProgress = text("0/4 hoàn thành", 14, PRIMARY, true);
+        schedule.addView(dayProgress);
+        dayChecklist = new LinearLayout(this);
+        dayChecklist.setOrientation(LinearLayout.VERTICAL);
+        schedule.addView(dayChecklist);
+
+
         LinearLayout planner = card(schedulePage, "Lịch nội dung 7 ngày");
         planner.addView(text("7 ngày gợi ý, tự duyệt trước khi đăng.", 12, MUTED, false));
         planIdeas = new LinearLayout(this);
@@ -364,12 +440,6 @@ public final class MainActivity extends Activity {
         planner.addView(clearReminder);
         planner.addView(text("Nhớ bấm Lưu trong ứng dụng Lịch để bật nhắc.", 12, MUTED, false));
 
-        LinearLayout schedule = card(schedulePage, "Việc hôm nay");
-        dayChecklistDate = text("", 13, MUTED, false);
-        schedule.addView(dayChecklistDate);
-        dayChecklist = new LinearLayout(this);
-        dayChecklist.setOrientation(LinearLayout.VERTICAL);
-        schedule.addView(dayChecklist);
         refreshDailyContent();
 
         LinearLayout mcpPanel = card(connectPage, "Kết nối ChatGPT · MCP độc lập");
@@ -389,29 +459,45 @@ public final class MainActivity extends Activity {
         applyIcon(pairingCode, R.drawable.ic_sangit_key, MUTED, 20);
         mcpPanel.addView(pairingCode);
         TextView pairingState = text("Chưa kết nối", 14, MUTED, true);
-        setPairingStatus(pairingState, "Chưa kết nối");
         mcpPanel.addView(pairingState);
+        TextView pairingFeedback = text("", 12, MUTED, false);
+        mcpPanel.addView(pairingFeedback);
         Button pairButton = button("Ghép cặp an toàn", true);
+        mcpPanel.addView(pairButton);
+        Button statusButton = button("Gửi trạng thái theo yêu cầu", false);
+        mcpPanel.addView(statusButton);
+        Button disconnectButton = button("Ngắt kết nối / thu hồi phiên", false);
+        mcpPanel.addView(disconnectButton);
         pairButton.setOnClickListener(v -> {
-            setPairingStatus(pairingState, "Đang xác minh mã...");
+            updateMcpControls(endpoint, pairingCode, pairingState, pairingFeedback,
+                pairButton, statusButton, disconnectButton, true, "Đang xác minh mã...");
             mcpClient.pair(endpoint.getText().toString(), pairingCode.getText().toString(),
                 message -> runOnUiThread(() -> {
                     pairingCode.setText("");
-                    setPairingStatus(pairingState, message);
+                    updateMcpControls(endpoint, pairingCode, pairingState, pairingFeedback,
+                        pairButton, statusButton, disconnectButton, false, message);
                 }));
         });
-        mcpPanel.addView(pairButton);
-        Button statusButton = button("Gửi trạng thái theo yêu cầu", false);
-        statusButton.setOnClickListener(v -> mcpClient.checkIn(
-            message -> runOnUiThread(() -> setPairingStatus(pairingState, message))));
-        mcpPanel.addView(statusButton);
-        Button disconnectButton = button("Ngắt kết nối / thu hồi phiên", false);
-        disconnectButton.setOnClickListener(v -> mcpClient.disconnect(
-            message -> runOnUiThread(() -> setPairingStatus(pairingState, message))));
-        mcpPanel.addView(disconnectButton);
+        statusButton.setOnClickListener(v -> {
+            updateMcpControls(endpoint, pairingCode, pairingState, pairingFeedback,
+                pairButton, statusButton, disconnectButton, true, "Đang gửi trạng thái...");
+            mcpClient.checkIn(message -> runOnUiThread(() ->
+                updateMcpControls(endpoint, pairingCode, pairingState, pairingFeedback,
+                    pairButton, statusButton, disconnectButton, false, message)));
+        });
+        disconnectButton.setOnClickListener(v -> {
+            updateMcpControls(endpoint, pairingCode, pairingState, pairingFeedback,
+                pairButton, statusButton, disconnectButton, true, "Đang thu hồi phiên...");
+            mcpClient.disconnect(message -> runOnUiThread(() ->
+                updateMcpControls(endpoint, pairingCode, pairingState, pairingFeedback,
+                    pairButton, statusButton, disconnectButton, false, message)));
+        });
+        updateMcpControls(endpoint, pairingCode, pairingState, pairingFeedback,
+            pairButton, statusButton, disconnectButton, false, "");
+
         mcpPanel.addView(text("Phiên chỉ lưu tạm. Mở lại ứng dụng cần ghép cặp mới.", 12, MUTED, false));
 
-        TextView footer = text("SangIT Android Agent · v0.3.5 beta", 11, MUTED, false);
+        TextView footer = text("SangIT Android Agent · v0.3.6 beta", 11, MUTED, false);
         footer.setGravity(Gravity.CENTER_HORIZONTAL);
         footer.setPadding(0, dp(10), 0, 0);
         connectPage.addView(footer);
@@ -445,12 +531,58 @@ public final class MainActivity extends Activity {
         if (scrollTop && contentScroll != null) contentScroll.post(() -> contentScroll.scrollTo(0, 0));
     }
 
+    /** Hides inactive writing mode without destroying draft or reply fields. */
+    private void activateWritingMode(int index) {
+        if (index < 0 || index >= writingPanels.length) return;
+        writingMode = index;
+        for (int i = 0; i < writingPanels.length; i++) {
+            if (writingPanels[i] == null || writingModeLabels[i] == null) continue;
+            boolean active = i == index;
+            writingPanels[i].setVisibility(active ? View.VISIBLE : View.GONE);
+            writingModeLabels[i].setTextColor(active ? PRIMARY : MUTED);
+            writingModeLabels[i].setBackground(rounded(active ? SOFT : Color.TRANSPARENT,
+                12, active ? SOFT : Color.TRANSPARENT));
+            writingModeLabels[i].setSelected(active);
+        }
+    }
+
+    private void setMetricsEditorVisible(boolean visible) {
+        metricsEditorExpanded = visible;
+        if (metricInputs != null) metricInputs.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (metricSaveButton != null) metricSaveButton.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (metricToggleButton != null) metricToggleButton.setText(visible ? "Đóng chỉnh sửa" : "Cập nhật thống kê");
+    }
+
+    /** UI reflects confirmed in-memory pairing, not strings returned by the server. */
+    private void updateMcpControls(EditText endpoint, EditText code, TextView state,
+        TextView feedback, Button pair, Button send, Button revoke, boolean busy, String message) {
+        boolean paired = mcpClient.isPaired();
+        endpoint.setVisibility(paired ? View.GONE : View.VISIBLE);
+        code.setVisibility(paired ? View.GONE : View.VISIBLE);
+        pair.setVisibility(paired ? View.GONE : View.VISIBLE);
+        send.setVisibility(paired ? View.VISIBLE : View.GONE);
+        revoke.setVisibility(paired ? View.VISIBLE : View.GONE);
+        endpoint.setEnabled(!busy && !paired);
+        code.setEnabled(!busy && !paired);
+        pair.setEnabled(!busy && !paired);
+        send.setEnabled(!busy && paired);
+        revoke.setEnabled(!busy && paired);
+        setPairingStatus(state, busy ? "Đang xử lý..." :
+            paired ? "Ghép cặp thành công · phiên trên thiết bị" : "Chưa kết nối");
+        boolean hasMessage = message != null && !message.isEmpty();
+        feedback.setVisibility(hasMessage ? View.VISIBLE : View.GONE);
+        if (hasMessage) feedback.setText(message);
+    }
+
     /** Refresh dated lists only; editors and the in-memory MCP pairing remain mounted. */
     private void refreshDailyContent() {
         if (planIdeas == null || dayChecklist == null || dayChecklistDate == null) return;
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         String date = today.toString();
-        if (date.equals(displayedDay)) return;
+        if (date.equals(displayedDay)) {
+            updateDailyProgress(date);
+            return;
+        }
         displayedDay = date;
         showPlanDays(today);
         dayChecklistDate.setText("Ngày " + today.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
@@ -460,6 +592,16 @@ public final class MainActivity extends Activity {
         addTask(dayChecklist, date, "noon", "12:00 · Xem thông báo / trả lời thủ công");
         addTask(dayChecklist, date, "evening", "19:00 · Duyệt và đăng bài");
         addTask(dayChecklist, date, "night", "21:00 · Kiểm tra kết quả");
+        updateDailyProgress(date);
+    }
+
+    private void updateDailyProgress(String date) {
+        if (dayProgress == null || !date.equals(displayedDay)) return;
+        int completed = 0;
+        for (String id : new String[]{"morning", "noon", "evening", "night"}) {
+            if (store.taskDone(id, date)) completed++;
+        }
+        dayProgress.setText(completed + "/4 hoàn thành");
     }
 
     private void showPlanDays(LocalDate today) {
@@ -502,15 +644,17 @@ public final class MainActivity extends Activity {
 
     private void updateMetricsSummary() {
         if (metricsSummary == null) return;
-        if (store.metricsDate().isEmpty()) {
-            metricsSummary.setText("Chưa có thống kê · nhập 3 chỉ số bên dưới");
+        boolean empty = store.metricsDate().isEmpty();
+        if (metricAmounts[0] != null) metricAmounts[0].setText(empty ? "—" : Integer.toString(store.followers()));
+        if (metricAmounts[1] != null) metricAmounts[1].setText(empty ? "—" : Integer.toString(store.views()));
+        if (metricAmounts[2] != null) metricAmounts[2].setText(empty ? "—" : Integer.toString(store.interactions()));
+        if (empty) {
+            metricsSummary.setText("Chưa có thống kê · bấm Cập nhật để nhập");
             return;
         }
-        String trend = store.previousMetricsDate().isEmpty() ? "Chưa có kỳ trước" :
-            "Thay đổi follower so với " + store.previousMetricsDate() + ": " +
-                MetricsMath.delta(store.previousFollowers(), store.followers());
-        metricsSummary.setText("Cập nhật " + store.metricsDate() + " · " + store.followers() + " follower · " +
-            store.views() + " lượt xem · " + store.interactions() + " tương tác\n" + trend);
+        String trend = store.previousMetricsDate().isEmpty() ? "" :
+            " · Theo dõi " + MetricsMath.delta(store.previousFollowers(), store.followers());
+        metricsSummary.setText("Cập nhật " + store.metricsDate() + trend);
     }
 
     private void updateReminderSummary() {
@@ -573,7 +717,10 @@ public final class MainActivity extends Activity {
         check.setTextSize(15f);
         check.setMinHeight(dp(48));
         check.setChecked(store.taskDone(id, date));
-        check.setOnCheckedChangeListener((button, value) -> store.setTaskDone(id, date, value));
+        check.setOnCheckedChangeListener((button, value) -> {
+            store.setTaskDone(id, date, value);
+            updateDailyProgress(date);
+        });
         container.addView(check);
     }
 
@@ -717,7 +864,8 @@ public final class MainActivity extends Activity {
 
     private int sectionIcon(String name) {
         if (name.contains("Riêng tư")) return R.drawable.ic_sangit_shield;
-        if (name.contains("Thống kê")) return R.drawable.ic_sangit_chart;
+        if (name.contains("Thống kê") || name.contains("Chỉ số")) return R.drawable.ic_sangit_chart;
+        if (name.contains("Thao tác")) return R.drawable.ic_sangit_dashboard;
         if (name.contains("Facebook")) return R.drawable.ic_sangit_person;
         if (name.contains("Soạn")) return R.drawable.ic_sangit_edit;
         if (name.contains("phản hồi")) return R.drawable.ic_sangit_message;
@@ -728,6 +876,11 @@ public final class MainActivity extends Activity {
     }
 
     private int actionIcon(String label) {
+        if (label.startsWith("Soạn bài")) return R.drawable.ic_sangit_edit;
+        if (label.startsWith("Facebook")) return R.drawable.ic_sangit_person;
+        if (label.startsWith("Thông báo")) return R.drawable.ic_sangit_bell;
+        if (label.startsWith("Tin nhắn")) return R.drawable.ic_sangit_message;
+        if (label.startsWith("Cập nhật thống kê") || label.startsWith("Đóng chỉnh sửa")) return R.drawable.ic_sangit_chart;
         if (label.startsWith("Mở hồ sơ")) return R.drawable.ic_sangit_person;
         if (label.startsWith("Mở thông báo")) return R.drawable.ic_sangit_bell;
         if (label.startsWith("Mở tin nhắn")) return R.drawable.ic_sangit_message;
