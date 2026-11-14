@@ -55,3 +55,13 @@ CURRENT STATE: **DEBUG APK BUILT AND VERIFIED / DEVICE E2E PENDING / PRODUCTION 
 - Reorganized existing functional sections into 4 persistent bottom tabs (Tổng quan, Bài viết, Lịch, MCP), 52dp tap targets, updated palette/cards/button feedback and fixed stale footer.
 - Tab changes only visibility, do not destroy editors or current in-memory MCP session. Existing handlers compared against prior source and retained.
 - Offline: 49/49 Java assertions, 10/10 Java syntax, privacy/static checks PASS on prepared source. CI APK and device responsive/E2E remain separate gates.
+
+## 2026-11-14 — v0.3.2 UI/UX debug APK CI verified
+- CI run https://github.com/Viyeu/sangit-android-agent/actions/runs/43617877035: SUCCESS, source commit 64470d24185828229cf680c929868aeda1c6e7ab.
+- GitHub JDK17 + SDK35 + Gradle8.9: compile PASS, 49/49 Java offline, 10/10 syntax parser, static privacy and navigation guards PASS.
+- APK manifest check explicitly rejects BIND_NOTIFICATION_LISTENER_SERVICE / NotificationListenerService; apksigner verify PASS.
+- Downloaded artifact ZIP CRC PASS; APK SHA-256 2d40cbf9ba96316c1f529ea7bc1aba1a6bd05db24e1ce4dc84fe166792d7f68e; size 37,284 bytes; package vn.sangit.androidagent, version 0.3.2/code5.
+- Handler-count regression preserved all MCP (pair/checkIn/disconnect), draft, metrics, sharing, Calendar and suggestion actions.
+- Real Android 16 responsive, gesture, focus/keyboard, draft retention, upgrade signature and UI E2E: NOT RUN; user confirmation required. Production signing not done.
+- No SangIT Core, VPS/Caddy, standalone MCP server or production changes.
+STATE: **UI SOURCE + DEBUG APK BUILT / STATIC + CI PASS / PHYSICAL ANDROID E2E PENDING**.
