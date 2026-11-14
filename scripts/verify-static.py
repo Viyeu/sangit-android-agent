@@ -51,7 +51,17 @@ assert 'selected_tab' in java
 assert 'refreshDailyContent()' in java and 'showPlanDays(today)' in java
 assert 'mcp-android.example.com' not in java
 assert 'show_all_plan_days' in java
-assert "versionName '0.3.3'" in (root / 'app/build.gradle').read_text()
+assert 'tabIcons[i].setImageTintList' in java
+assert 'applyIcon(button, actionIcon(label)' in java
+assert 'setPairingStatus(pairingState, message)' in java
+icons = sorted((root / 'app/src/main/res/drawable').glob('ic_sangit_*.xml'))
+assert len(icons) == 20, f'Expected 20 vector icons, got {len(icons)}'
+for icon in icons:
+    vector = ET.parse(icon).getroot()
+    assert vector.tag.endswith('vector')
+    assert any(x.tag.endswith('path') and x.attrib.get(ns + 'pathData') for x in vector.iter()), icon
+
+assert "versionName '0.3.4'" in (root / 'app/build.gradle').read_text()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ReplyAssistant.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/MetricsMath.java').exists()
 assert (root / 'app/src/main/java/vn/sangit/androidagent/ContentSchedule.java').exists()

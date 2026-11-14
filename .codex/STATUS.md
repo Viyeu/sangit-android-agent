@@ -81,3 +81,8 @@ STATE: **UI SOURCE + DEBUG APK BUILT / STATIC + CI PASS / PHYSICAL ANDROID E2E P
 - Physical Android 16 UX interaction/regression test: PENDING device confirmation. Standalone MCP HTTPS/OAuth LIVE: BLOCKED, unaffected.
 - No Core/WordPress/VPS/Panel/Caddy/production modification.
 STATE: **UI v0.3.3 DEBUG APK BUILD VERIFIED / DEVICE INTERACTION E2E PENDING**.
+
+## 2026-11-15 — Full native icons v0.3.4
+- Adds 20 internal VectorDrawable icons to the 4 bottom tabs, card headers, buttons, metric labels, MCP inputs and status messages. No network dependency or new permissions.
+- Selected tab icon tint matches active state, 64dp navigation remains accessible; previous UI event handlers and independent MCP remain unchanged.
+- CI build and device-interaction E2E checked separately. No Core/VPS/production changes.

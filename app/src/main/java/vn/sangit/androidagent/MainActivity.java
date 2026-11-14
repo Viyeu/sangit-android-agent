@@ -10,6 +10,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.RippleDrawable;
+import android.graphics.drawable.Drawable;
+import android.widget.ImageView;
 import android.graphics.Insets;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -54,6 +56,8 @@ public final class MainActivity extends Activity {
     private final McpDeviceClient mcpClient = new McpDeviceClient();
     private final LinearLayout[] tabPages = new LinearLayout[4];
     private final TextView[] tabLabels = new TextView[4];
+    private final ImageView[] tabIcons = new ImageView[4];
+    private final LinearLayout[] tabSurfaces = new LinearLayout[4];
     private ScrollView contentScroll;
     private TextView pageHeader;
     private TextView pageSubtitle;
@@ -150,7 +154,7 @@ public final class MainActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
         setContentView(root);
 
-        TextView eyebrow = text("SANGIT  /  ANDROID AGENT 0.3.2", 11, PRIMARY, true);
+        TextView eyebrow = text("SANGIT  /  ANDROID AGENT 0.3.4", 11, PRIMARY, true);
         eyebrow.setLetterSpacing(0.08f);
         body.addView(eyebrow);
         pageHeader = text("Tổng quan", 27, INK, true);
@@ -177,16 +181,29 @@ public final class MainActivity extends Activity {
         navigation.setBackgroundColor(Color.WHITE);
         navigation.setElevation(dp(8));
         String[] names = {"Tổng quan", "Bài viết", "Lịch", "MCP"};
+        int[] icons = {R.drawable.ic_sangit_dashboard, R.drawable.ic_sangit_edit,
+            R.drawable.ic_sangit_calendar, R.drawable.ic_sangit_link};
         for (int i = 0; i < names.length; i++) {
             final int index = i;
-            TextView tab = text(names[i], 13, MUTED, false);
+            LinearLayout tab = new LinearLayout(this);
+            tab.setOrientation(LinearLayout.VERTICAL);
             tab.setGravity(Gravity.CENTER);
-            tab.setMinHeight(dp(52));
             tab.setFocusable(true);
+            tab.setClickable(true);
             tab.setContentDescription("Mở mục " + names[i]);
+            ImageView picture = new ImageView(this);
+            picture.setImageResource(icons[i]);
+            picture.setImageTintList(ColorStateList.valueOf(MUTED));
+            tab.addView(picture, new LinearLayout.LayoutParams(dp(22), dp(22)));
+            TextView label = text(names[i], 12, MUTED, false);
+            label.setGravity(Gravity.CENTER);
+            label.setPadding(0, dp(4), 0, 0);
+            tab.addView(label);
             tab.setOnClickListener(v -> activateTab(index, true));
-            navigation.addView(tab, new LinearLayout.LayoutParams(0, dp(52), 1f));
-            tabLabels[i] = tab;
+            navigation.addView(tab, new LinearLayout.LayoutParams(0, dp(64), 1f));
+            tabLabels[i] = label;
+            tabIcons[i] = picture;
+            tabSurfaces[i] = tab;
         }
         root.addView(navigation, new LinearLayout.LayoutParams(-1, -2));
 
@@ -360,35 +377,38 @@ public final class MainActivity extends Activity {
         endpoint.setSingleLine(true);
         endpoint.setHint("Địa chỉ HTTPS máy chủ MCP");
         endpoint.setContentDescription("Địa chỉ máy chủ MCP HTTPS độc lập");
+        applyIcon(endpoint, R.drawable.ic_sangit_link, MUTED, 20);
         mcpPanel.addView(endpoint);
         EditText pairingCode = editor("", 1);
         pairingCode.setSingleLine(true);
         pairingCode.setHint("Mã ghép cặp dùng một lần");
         pairingCode.setContentDescription("Mã ghép cặp một lần");
+        applyIcon(pairingCode, R.drawable.ic_sangit_key, MUTED, 20);
         mcpPanel.addView(pairingCode);
-        TextView pairingState = text("Chưa kết nối", 14, PRIMARY, true);
+        TextView pairingState = text("Chưa kết nối", 14, MUTED, true);
+        setPairingStatus(pairingState, "Chưa kết nối");
         mcpPanel.addView(pairingState);
         Button pairButton = button("Ghép cặp an toàn", true);
         pairButton.setOnClickListener(v -> {
-            pairingState.setText("Đang xác minh mã...");
+            setPairingStatus(pairingState, "Đang xác minh mã...");
             mcpClient.pair(endpoint.getText().toString(), pairingCode.getText().toString(),
                 message -> runOnUiThread(() -> {
                     pairingCode.setText("");
-                    pairingState.setText(message);
+                    setPairingStatus(pairingState, message);
                 }));
         });
         mcpPanel.addView(pairButton);
         Button statusButton = button("Gửi trạng thái theo yêu cầu", false);
         statusButton.setOnClickListener(v -> mcpClient.checkIn(
-            message -> runOnUiThread(() -> pairingState.setText(message))));
+            message -> runOnUiThread(() -> setPairingStatus(pairingState, message))));
         mcpPanel.addView(statusButton);
         Button disconnectButton = button("Ngắt kết nối / thu hồi phiên", false);
         disconnectButton.setOnClickListener(v -> mcpClient.disconnect(
-            message -> runOnUiThread(() -> pairingState.setText(message))));
+            message -> runOnUiThread(() -> setPairingStatus(pairingState, message))));
         mcpPanel.addView(disconnectButton);
         mcpPanel.addView(text("Kết nối trực tiếp ChatGPT qua máy chủ MCP độc lập có HTTPS và xác thực. Phiên ghép cặp chỉ giữ trong bộ nhớ; đóng ứng dụng cần ghép cặp lại.", 12, MUTED, false));
 
-        TextView footer = text("SangIT Android Agent · v0.3.2 beta\nChỉ chia sẻ khi bạn xác nhận", 12, MUTED, false);
+        TextView footer = text("SangIT Android Agent · v0.3.4 beta\nChỉ chia sẻ khi bạn xác nhận", 12, MUTED, false);
         footer.setGravity(Gravity.CENTER_HORIZONTAL);
         footer.setPadding(0, dp(10), 0, 0);
         connectPage.addView(footer);
@@ -413,7 +433,8 @@ public final class MainActivity extends Activity {
             boolean active = i == index;
             tabLabels[i].setTextColor(active ? PRIMARY : MUTED);
             tabLabels[i].setTypeface(null, active ? Typeface.BOLD : Typeface.NORMAL);
-            tabLabels[i].setBackground(rounded(active ? SOFT : Color.TRANSPARENT, 13,
+            tabIcons[i].setImageTintList(ColorStateList.valueOf(active ? PRIMARY : MUTED));
+            tabSurfaces[i].setBackground(rounded(active ? SOFT : Color.TRANSPARENT, 13,
                 active ? SOFT : Color.TRANSPARENT));
             tabLabels[i].setSelected(active);
         }
@@ -458,7 +479,11 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1f);
         lp.setMargins(0, dp(8), dp(6), dp(6));
         container.addView(col, lp);
-        col.addView(text(label, 12, MUTED, false));
+        TextView fieldLabel = text(label, 12, MUTED, false);
+        applyIcon(fieldLabel, "Theo dõi".equals(label) ? R.drawable.ic_sangit_person
+            : "Lượt xem".equals(label) ? R.drawable.ic_sangit_chart
+            : R.drawable.ic_sangit_message, PRIMARY, 16);
+        col.addView(fieldLabel);
         EditText field = new EditText(this);
         field.setSingleLine(true);
         field.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -607,6 +632,7 @@ public final class MainActivity extends Activity {
         params.bottomMargin = dp(12);
         parent.addView(card, params);
         TextView title = text(heading, 18, INK, true);
+        applyIcon(title, sectionIcon(heading), PRIMARY, 19);
         title.setPadding(0, 0, 0, dp(9));
         card.addView(title);
         return card;
@@ -641,6 +667,8 @@ public final class MainActivity extends Activity {
         button.setTextColor(primary ? Color.WHITE : INK);
         button.setMinHeight(dp(52));
         button.setPadding(dp(13), dp(10), dp(13), dp(10));
+        applyIcon(button, actionIcon(label), primary ? Color.WHITE : PRIMARY, 19);
+        button.setGravity(Gravity.CENTER);
         button.setBackground(new RippleDrawable(ColorStateList.valueOf(
             primary ? 0x44FFFFFF : 0x22007074),
             rounded(primary ? PRIMARY : BACKGROUND, 14, primary ? PRIMARY : BORDER), null));
@@ -648,6 +676,58 @@ public final class MainActivity extends Activity {
         params.topMargin = dp(7);
         button.setLayoutParams(params);
         return button;
+    }
+
+    /** Lightweight bundled vector icons. Existing actions remain unchanged. */
+    private void applyIcon(TextView view, int resource, int color, int size) {
+        Drawable icon = getDrawable(resource);
+        if (icon == null) return;
+        icon = icon.mutate();
+        icon.setTint(color);
+        icon.setBounds(0, 0, dp(size), dp(size));
+        view.setCompoundDrawables(icon, null, null, null);
+        view.setCompoundDrawablePadding(dp(8));
+    }
+
+    private int sectionIcon(String name) {
+        if (name.contains("Riêng tư")) return R.drawable.ic_sangit_shield;
+        if (name.contains("Thống kê")) return R.drawable.ic_sangit_chart;
+        if (name.contains("Facebook")) return R.drawable.ic_sangit_person;
+        if (name.contains("Soạn")) return R.drawable.ic_sangit_edit;
+        if (name.contains("phản hồi")) return R.drawable.ic_sangit_message;
+        if (name.contains("Lịch")) return R.drawable.ic_sangit_calendar;
+        if (name.contains("Việc")) return R.drawable.ic_sangit_check;
+        if (name.contains("MCP") || name.contains("ChatGPT")) return R.drawable.ic_sangit_link;
+        return R.drawable.ic_sangit_dashboard;
+    }
+
+    private int actionIcon(String label) {
+        if (label.startsWith("Mở hồ sơ")) return R.drawable.ic_sangit_person;
+        if (label.startsWith("Mở thông báo")) return R.drawable.ic_sangit_bell;
+        if (label.startsWith("Mở tin nhắn")) return R.drawable.ic_sangit_message;
+        if (label.startsWith("Lưu")) return R.drawable.ic_sangit_save;
+        if (label.startsWith("Chọn ảnh")) return R.drawable.ic_sangit_image;
+        if (label.startsWith("Chia sẻ")) return R.drawable.ic_sangit_share;
+        if (label.startsWith("Sao chép")) return R.drawable.ic_sangit_copy;
+        if (label.startsWith("Gợi ý") || label.startsWith("Nhờ ChatGPT")) return R.drawable.ic_sangit_sparkles;
+        if (label.contains("7 ngày")) return R.drawable.ic_sangit_expand;
+        if (label.startsWith("Chọn ngày") || label.startsWith("Chuẩn bị lời")) return R.drawable.ic_sangit_calendar;
+        if (label.startsWith("Xóa")) return R.drawable.ic_sangit_delete;
+        if (label.startsWith("Ghép cặp")) return R.drawable.ic_sangit_link;
+        if (label.startsWith("Gửi trạng thái")) return R.drawable.ic_sangit_upload;
+        if (label.startsWith("Ngắt kết nối")) return R.drawable.ic_sangit_unlink;
+        return R.drawable.ic_sangit_check;
+    }
+
+    private void setPairingStatus(TextView view, String message) {
+        view.setText(message);
+        String info = message.toLowerCase(java.util.Locale.ROOT);
+        boolean success = info.contains("thành công") || info.startsWith("đã gửi");
+        boolean failure = info.contains("thất bại") || info.startsWith("không ") || info.contains("lỗi");
+        int tint = success ? PRIMARY : failure ? Color.rgb(173, 83, 37) : MUTED;
+        view.setTextColor(tint);
+        applyIcon(view, success ? R.drawable.ic_sangit_check :
+            failure ? R.drawable.ic_sangit_unlink : R.drawable.ic_sangit_link, tint, 19);
     }
 
     private GradientDrawable rounded(int background, int radiusDp, int stroke) {
