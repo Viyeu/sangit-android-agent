@@ -139,3 +139,13 @@ STATE: **v0.3.6 DEBUG APK VERIFIED / PHYSICAL ANDROID 16 UX E2E PENDING / LIVE M
 - Scoped workaround: debug-only applicationIdSuffix `.preview` and label `SangIT Agent Preview`; release applicationId unchanged. All source functionality, permissions and production config unchanged.
 - CI added checks for preview applicationId, visible label and no additional permissions. This Preview installs as a separate application, existing private data does not migrate. This does not fix repeat signing key rotation for future Preview updates.
 - Permanent fix requires dedicated stable Android signing key in a secure store, not in GitHub public source. Physical install E2E remains pending.
+
+## 2026-11-15 — Side-by-side APK Preview CI VERIFIED
+- GitHub Actions https://github.com/Viyeu/sangit-android-agent/actions/runs/43651813498: SUCCESS on 1c85db19e06666f98841a82ec25292d4f96af4c5.
+- Offline Java 49/49, Java parser 10/10, static privacy checks PASS; SDK35/JDK17 Gradle debug build PASS; compiled Android manifest no NotificationListenerService; apksigner verify PASS.
+- AAPT CI assertion confirmed actual compiled package `vn.sangit.androidagent.preview` and visible app label `SangIT Agent Preview`.
+- Downloaded CI artifact and verified ZIP CRC and APK ZIP integrity. APK SHA-256 `959d3a336f74f78b3e9275a347a33de6ce20f1405c6d01aed4098a5960c1a1fd`, 55,143 bytes; 20 native vector icons verified. Version 0.3.6-preview/code9.
+- Original app package `vn.sangit.androidagent` and all its private data remain untouched by installing Preview. APK update-in-place is **not possible** without the old original signing private key, which is not available from an APK.
+- Preview package maintains separate preferences (no automatic data transfer) and is debug signed by ephemeral runner key. Future Preview updates would likewise require a stable Android signing keystore protected off-repository. No signing key, token or secret was committed.
+- Device-side install/E2E remains PENDING; independent MCP HTTPS/OAuth still BLOCKED; no Core/VPS/live service changes.
+STATE: **SIDE-BY-SIDE PREVIEW APK VERIFIED / DEVICE INSTALL PENDING / PERMANENT SIGNING KEY NOT CONFIGURED**.
