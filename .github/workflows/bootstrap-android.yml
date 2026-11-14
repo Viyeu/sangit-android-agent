@@ -1,4 +1,4 @@
-name: SangIT Android Agent v0.2 Debug APK
+name: SangIT Android Agent v0.3 Direct MCP Debug APK
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ on:
       - '.github/workflows/bootstrap-android.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-debug:
@@ -64,12 +64,12 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify "$APK"
           SHA=$(sha256sum "$APK" | awk '{print $1}')
           {
-            echo '# SangIT Android Agent v0.2 — Debug Build Receipt'
+            echo '# SangIT Android Agent v0.3 — Debug Build Receipt'
             echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo "- GitHub SHA: ${GITHUB_SHA}"
             echo "- APK SHA-256: ${SHA}"
             echo '- Package: vn.sangit.androidagent'
-            echo '- Version: 0.2.0 / code 2'
+            echo '- Version: 0.3.0 / code 3'
             echo '- Variant: debug, not signed production release'
             echo '- Offline Java assertions: 49/49 PASS'
             echo '- Android physical-device E2E: NOT RUN'
@@ -79,19 +79,10 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: sangit-android-agent-v0.2-debug
+          name: sangit-android-agent-v0.3-direct-mcp-debug
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             .codex/CI-BUILD-REPORT.md
           if-no-files-found: error
           retention-days: 14
 
-      - name: Save CI receipt to source repository
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .codex/CI-BUILD-REPORT.md
-          git commit -m 'Record Android Agent v0.2 debug APK build'
-          git push origin HEAD:main
