@@ -53,7 +53,7 @@ assert 'mcp-android.example.com' not in java
 assert 'show_all_plan_days' in java
 assert 'tabIcons[i].setImageTintList' in java
 assert 'applyIcon(button, actionIcon(label)' in java
-assert 'setPairingStatus(pairingState, message)' in java
+assert 'setPairingStatus(state, busy ?' in java and 'updateMcpControls' in java
 assert 'addCompactActions(inbox, facebookNotices, messenger)' in java
 assert 'addCompactActions(post, save, selectImage)' in java
 assert 'screenWidthDp < 360' in java
