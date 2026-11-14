@@ -149,3 +149,11 @@ STATE: **v0.3.6 DEBUG APK VERIFIED / PHYSICAL ANDROID 16 UX E2E PENDING / LIVE M
 - Preview package maintains separate preferences (no automatic data transfer) and is debug signed by ephemeral runner key. Future Preview updates would likewise require a stable Android signing keystore protected off-repository. No signing key, token or secret was committed.
 - Device-side install/E2E remains PENDING; independent MCP HTTPS/OAuth still BLOCKED; no Core/VPS/live service changes.
 STATE: **SIDE-BY-SIDE PREVIEW APK VERIFIED / DEVICE INSTALL PENDING / PERMANENT SIGNING KEY NOT CONFIGURED**.
+
+## 2026-11-15 — Fix ChatGPT Android "Library file not found" via GitHub public prerelease
+- User screenshots confirm app UI file downloader errors "Library file not found" for sandbox/Library links, despite existing and hash-verified APK. Workaround: public GitHub Releases instead of the ChatGPT Library download channel; not an Android app or package error.
+- Publishing workflow `.github/workflows/publish-android-preview.yml` commit 673460a7c9c3e4b93c0b22d2b38f6a783f27bf76. Workflow run https://github.com/Viyeu/sangit-android-agent/actions/runs/43652212167 SUCCESS. It downloads the previously verified Preview APK artifact, enforces expected SHA-256, and creates a GitHub prerelease with no overwrite.
+- GitHub prerelease https://github.com/Viyeu/sangit-android-agent/releases/tag/v0.3.6-preview; direct APK https://github.com/Viyeu/sangit-android-agent/releases/download/v0.3.6-preview/SangIT-Android-Agent-v0.3.6-Preview.apk
+- Remote release asset size **55,143 bytes** and GitHub-reported digest **sha256:959d3a336f74f78b3e9275a347a33de6ce20f1405c6d01aed4098a5960c1a1fd** MATCH downloaded CI artifact.
+- Public prerelease (debug) only: not device-E2E verified and no stable signing identity configured; user should retain old app/data and test side-by-side Preview. No SangIT Core/VPS/WordPress changes.
+STATE: **PUBLIC DIRECT DOWNLOAD VERIFIED / PHYSICAL INSTALL E2E PENDING**.
